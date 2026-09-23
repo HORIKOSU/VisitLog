@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VisitLog</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%BA%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf6f0; --card:#ffffff; --ink:#33291f; --sub:#8a7a68;
+    --line:#ece2d4; --accent:#e2793f; --accent-soft:#fbe6d7;
+    --want:#caa437; --want-soft:#faf3d9;
+    --gray:#c7bfb2; --gray-soft:#f1ede6;
+    --c-nature:#2f9e6e; --c-history:#7c5cf0; --c-theme:#2f7fd6; --c-museum:#d1477a; --c-town:#c9862a;
+    --shadow:0 2px 10px rgba(60,45,20,0.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'M PLUS Rounded 1c', sans-serif; background:var(--bg); color:var(--ink);
+    padding-bottom:78px; -webkit-font-smoothing:antialiased;
+  }
+  header{
+    position:sticky; top:0; z-index:20; background:linear-gradient(135deg,#e2793f,#c9862a);
+    color:#fff; padding:14px 16px 12px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  }
+  header h1{font-size:18px; margin:0; font-weight:800; display:flex; align-items:center; gap:6px;}
+  header .icon-btn{
+    background:rgba(255,255,255,0.22); border:none; color:#fff; width:36px; height:36px; border-radius:50%;
+    font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .subbar{display:flex; gap:8px; padding:10px 12px 4px; overflow-x:auto; scrollbar-width:none;}
+  .subbar::-webkit-scrollbar{display:none;}
+  .chipbtn{
+    flex:none; background:var(--card); border:1px solid var(--line); color:var(--sub);
+    border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .chipbtn.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  main{padding:8px 12px 20px; max-width:640px; margin:0 auto;}
+  .heroCard{
+    background:linear-gradient(135deg,#fff,#fdf4ea); border:1px solid var(--line); border-radius:18px;
+    padding:16px; margin:10px 0; box-shadow:var(--shadow);
+  }
+  .heroTop{display:flex; justify-content:space-between; align-items:baseline;}
+  .heroTop .big{font-size:30px; font-weight:800; color:var(--accent);}
+  .heroTop .lbl{font-size:12.5px; color:var(--sub); font-weight:700;}
+  .barTrack{height:10px; background:var(--gray-soft); border-radius:6px; margin-top:10px; overflow:hidden;}
+  .barFill{height:100%; background:linear-gradient(90deg,#e2793f,#f0a35d); border-radius:6px; transition:width .3s;}
+  .heroSub{font-size:12px; color:var(--sub); margin-top:8px;}
+
+  .prefCard{
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 14px 10px;
+    margin:10px 0; box-shadow:var(--shadow);
+  }
+  .prefCard .ph{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .prefCard .pname{font-size:15.5px; font-weight:800;}
+  .prefCard .prate{font-size:12px; color:var(--sub); font-weight:700;}
+  .prefCard .barTrack{height:7px; margin-top:6px; margin-bottom:6px;}
+  .catGroup{margin-top:8px;}
+  .catHead{
+    display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; color:var(--sub);
+    margin:8px 0 5px;
+  }
+  .catDot{width:8px; height:8px; border-radius:50%; flex:none; box-shadow:0 0 0 2px #fff;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:6px 11px 6px 8px;
+    font-size:12.5px; font-weight:700; border:1.5px solid var(--gray); background:var(--gray-soft); color:#6b6152;
+    cursor:pointer; max-width:100%;
+  }
+  .chip .cdot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .chip.visited{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .chip.visited .cdot{box-shadow:0 0 0 1.5px rgba(255,255,255,0.8);}
+  .chip.want{background:var(--want-soft); border-color:var(--want); color:#8a6d16;}
+  .chip .cnt{opacity:.85; font-weight:800;}
+  .regionHead{font-size:13px; font-weight:800; color:var(--sub); margin:18px 4px 2px; letter-spacing:.02em;}
+
+  .listRow{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px;
+    margin:8px 0; display:flex; align-items:center; gap:10px; box-shadow:var(--shadow); cursor:pointer;
+  }
+  .listRow .cdot{width:10px; height:10px; border-radius:50%; flex:none;}
+  .listRow .info{flex:1; min-width:0;}
+  .listRow .nm{font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .listRow .sub{font-size:11.5px; color:var(--sub); margin-top:1px;}
+  .listRow .state{font-size:11px; font-weight:800; padding:4px 9px; border-radius:999px; flex:none;}
+  .state.visited{background:var(--accent-soft); color:var(--accent);}
+  .state.want{background:var(--want-soft); color:#8a6d16;}
+  .state.none{background:var(--gray-soft); color:var(--sub);}
+
+  .searchBox{
+    display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:9px 12px; margin:8px 0;
+  }
+  .searchBox input{border:none; outline:none; background:transparent; font-size:14px; flex:1; font-family:inherit; color:var(--ink);}
+  select.selCtl{
+    border:1px solid var(--line); background:var(--card); border-radius:10px; padding:7px 8px; font-size:12.5px;
+    font-family:inherit; color:var(--ink);
+  }
+  .filterRow{display:flex; gap:6px; margin:6px 0 2px; flex-wrap:wrap;}
+
+  .statGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0;}
+  .statTile{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 8px; text-align:center; box-shadow:var(--shadow);}
+  .statTile .n{font-size:20px; font-weight:800; color:var(--accent);}
+  .statTile .l{font-size:11px; color:var(--sub); margin-top:3px; font-weight:700;}
+  .barRow{display:flex; align-items:center; gap:8px; margin:8px 0;}
+  .barRow .rl{font-size:12.5px; width:92px; flex:none; color:var(--sub); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .barRow .rt{flex:1; height:9px; background:var(--gray-soft); border-radius:5px; overflow:hidden;}
+  .barRow .rf{height:100%; border-radius:5px;}
+  .barRow .rn{font-size:11.5px; color:var(--sub); width:44px; text-align:right; flex:none;}
+  .sectionTitle{font-size:14px; font-weight:800; margin:16px 2px 6px;}
+  .favRow{display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin:6px 0; box-shadow:var(--shadow);}
+
+  .legend{display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--sub); margin:6px 2px 2px;}
+  .legend span{display:inline-flex; align-items:center; gap:4px;}
+  .legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  .calHead{display:flex; align-items:center; justify-content:space-between; margin:10px 2px;}
+  .calHead .navBtn{background:var(--gray-soft); border:none; border-radius:50%; width:32px; height:32px; font-size:15px; cursor:pointer; color:var(--ink);}
+  .calHead .calTitle{font-weight:800; font-size:15.5px;}
+  .calWeekLabels{display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--sub); font-weight:700; margin-bottom:4px;}
+  .calGrid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .calCell{
+    aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:12.5px; color:var(--ink); background:var(--card); border:1px solid var(--line); position:relative;
+  }
+  .calCell.empty{visibility:hidden;}
+  .calCell.hasVisit{background:var(--accent-soft); border-color:var(--accent); cursor:pointer; font-weight:800;}
+  .calCell.today{box-shadow:0 0 0 2px var(--accent) inset;}
+  .calCell .dcount{font-size:9px; color:var(--accent); font-weight:800; margin-top:1px;}
+  .monthBarWrap{margin:4px 0 2px;}
+
+  nav.tabbar{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:30; box-shadow:0 -2px 10px rgba(0,0,0,0.06);
+  }
+  nav.tabbar button{
+    flex:1; border:none; background:none; padding:9px 2px 8px; display:flex; flex-direction:column; align-items:center;
+    gap:2px; color:var(--sub); font-family:inherit; font-size:10.5px; font-weight:700; cursor:pointer;
+  }
+  nav.tabbar button .ic{font-size:19px;}
+  nav.tabbar button.active{color:var(--accent);}
+
+  .fab{
+    position:fixed; right:16px; bottom:88px; width:54px; height:54px; border-radius:50%;
+    background:var(--accent); color:#fff; border:none; font-size:26px; box-shadow:0 4px 14px rgba(226,121,63,0.5);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:25;
+  }
+
+  .backdrop{
+    position:fixed; inset:0; background:rgba(30,20,10,0.4); z-index:40; opacity:0; pointer-events:none; transition:opacity .18s;
+  }
+  .backdrop.show{opacity:1; pointer-events:auto;}
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; background:#fff; border-radius:20px 20px 0 0; z-index:41;
+    max-height:82vh; overflow-y:auto; transform:translateY(100%); transition:transform .22s ease; padding:18px 18px 26px;
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheetCloseBtn{
+    position:absolute; top:14px; right:14px; z-index:5; width:32px; height:32px; border-radius:50%;
+    background:var(--gray-soft); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--sub); cursor:pointer;
+  }
+  .sheet h2{font-size:17px; margin:0 0 4px; font-weight:800; padding-right:38px;}
+  .sheet .metaline{font-size:12.5px; color:var(--sub); margin-bottom:12px;}
+  .sheet label{display:block; font-size:12px; font-weight:700; color:var(--sub); margin:12px 0 5px;}
+  .sheet input[type=text], .sheet input[type=date], .sheet select, .sheet textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 11px; font-size:14.5px; font-family:inherit; color:var(--ink);
+  }
+  .btnRow{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+  .btn{
+    border:none; border-radius:11px; padding:11px 16px; font-size:13.5px; font-weight:800; font-family:inherit;
+    cursor:pointer; flex:1;
+  }
+  .btn.primary{background:var(--accent); color:#fff;}
+  .btn.ghost{background:var(--gray-soft); color:var(--ink);}
+  .btn.gold{background:var(--want-soft); color:#8a6d16; border:1.5px solid var(--want);}
+  .btn.danger{background:#fbe4e4; color:#b23c3c;}
+  .btn.small{flex:none; padding:8px 12px; font-size:12.5px;}
+  .segRow{display:flex; gap:6px; flex-wrap:wrap;}
+  .seg{border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:7px 12px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--sub);}
+  .seg.on{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+  .starRow{display:flex; gap:6px; font-size:24px;}
+  .starRow span{cursor:pointer; color:#ddd6c8;}
+  .starRow span.on{color:#f0b429;}
+  .visitList{margin-top:8px;}
+  .visitItem{display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px dashed var(--line); font-size:13px;}
+  .visitItem button{border:none; background:none; color:#b23c3c; font-size:12px; cursor:pointer; font-family:inherit;}
+  .emptyMsg{text-align:center; color:var(--sub); font-size:13px; padding:30px 10px;}
+  .aboutText{font-size:13px; line-height:1.8; color:#54483a; white-space:pre-line;}
+  .menuList{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .menuList button{
+    display:flex; align-items:center; gap:10px; text-align:left; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--line); background:#fff; font-family:inherit; font-size:14px; font-weight:700; color:var(--ink); cursor:pointer;
+  }
+  .hiddenRow{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13px;}
+  .hiddenRow button{border:none; background:var(--accent-soft); color:var(--accent); font-weight:700; border-radius:8px; padding:5px 10px; font-size:12px; cursor:pointer;}
+  .toast{
+    position:fixed; left:50%; bottom:100px; transform:translateX(-50%); background:#33291f; color:#fff;
+    padding:9px 18px; border-radius:999px; font-size:13px; z-index:60; opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ VisitLog</h1>
+  <button class="icon-btn" id="btnMenu">☰</button>
+</header>
+
+<div class="subbar" id="subbar"></div>
+
+<main id="main"></main>
+
+<button class="fab" id="fabAdd">＋</button>
+
+<nav class="tabbar">
+  <button data-tab="coverage" class="active"><span class="ic">🗾</span>カバレッジ</button>
+  <button data-tab="list"><span class="ic">📋</span>リスト</button>
+  <button data-tab="calendar"><span class="ic">📅</span>カレンダー</button>
+  <button data-tab="stats"><span class="ic">📊</span>統計</button>
+</nav>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="detailSheet"></div>
+<div class="sheet" id="addSheet"></div>
+<div class="sheet" id="menuSheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PRESETS = [{"id": "p001", "name": "函館山", "pref": "北海道", "city": "函館市", "category": "nature", "note": "日本三大夜景"}, {"id": "p002", "name": "洞爺湖", "pref": "北海道", "city": "洞爺湖町", "category": "nature", "note": "カルデラ湖と花火"}, {"id": "p003", "name": "登別地獄谷", "pref": "北海道", "city": "登別市", "category": "nature", "note": "噴煙立つ火山地形"}, {"id": "p004", "name": "知床五湖", "pref": "北海道", "city": "斜里町", "category": "nature", "note": "世界自然遺産の湖沼群"}, {"id": "p005", "name": "五稜郭", "pref": "北海道", "city": "函館市", "category": "history", "note": "星形の西洋式城郭"}, {"id": "p006", "name": "札幌時計台", "pref": "北海道", "city": "札幌市", "category": "history", "note": "明治期の洋風建築"}, {"id": "p007", "name": "旭山動物園", "pref": "北海道", "city": "旭川市", "category": "theme", "note": "行動展示で有名な動物園"}, {"id": "p008", "name": "白い恋人パーク", "pref": "北海道", "city": "札幌市", "category": "theme", "note": "菓子テーマパーク"}, {"id": "p009", "name": "サッポロビール博物館", "pref": "北海道", "city": "札幌市", "category": "museum", "note": "ビール造りの歴史紹介"}, {"id": "p010", "name": "大通公園", "pref": "北海道", "city": "札幌市", "category": "town", "note": "雪まつり会場の中心"}, {"id": "p011", "name": "小樽運河", "pref": "北海道", "city": "小樽市", "category": "town", "note": "ノスタルジックな港町"}, {"id": "p012", "name": "八甲田山", "pref": "青森県", "city": "青森市", "category": "nature", "note": "紅葉とロープウェイ"}, {"id": "p013", "name": "十和田湖", "pref": "青森県", "city": "十和田市", "category": "nature", "note": "カルデラ湖の景勝地"}, {"id": "p014", "name": "奥入瀬渓流", "pref": "青森県", "city": "十和田市", "category": "nature", "note": "渓流沿いの散策路"}, {"id": "p015", "name": "弘前市りんご公園", "pref": "青森県", "city": "弘前市", "category": "nature", "note": "りんご畑と体験施設"}, {"id": "p016", "name": "三内丸山遺跡", "pref": "青森県", "city": "青森市", "category": "history", "note": "縄文時代の大規模集落跡"}, {"id": "p017", "name": "弘前城（弘前公園）", "pref": "青森県", "city": "弘前市", "category": "history", "note": "現存12天守の一つ"}, {"id": "p018", "name": "恐山", "pref": "青森県", "city": "むつ市", "category": "history", "note": "日本三大霊場の一つ"}, {"id": "p019", "name": "浅虫水族館", "pref": "青森県", "city": "青森市", "category": "theme", "note": "陸奥湾に面した水族館"}, {"id": "p020", "name": "ねぶたの家ワ・ラッセ", "pref": "青森県", "city": "青森市", "category": "museum", "note": "ねぶた祭りの展示施設"}, {"id": "p021", "name": "青森県立美術館", "pref": "青森県", "city": "青森市", "category": "museum", "note": "奈良美智作品などを収蔵"}, {"id": "p022", "name": "青森魚菜センター", "pref": "青森県", "city": "青森市", "category": "town", "note": "のっけ丼で有名な市場"}, {"id": "p023", "name": "浄土ヶ浜", "pref": "岩手県", "city": "宮古市", "category": "nature", "note": "白い岩肌の海岸景勝地"}, {"id": "p024", "name": "猊鼻渓", "pref": "岩手県", "city": "一関市", "category": "nature", "note": "舟下りで巡る渓谷美"}, {"id": "p025", "name": "龍泉洞", "pref": "岩手県", "city": "岩泉町", "category": "nature", "note": "日本三大鍾乳洞の一つ"}, {"id": "p026", "name": "中尊寺金色堂", "pref": "岩手県", "city": "平泉町", "category": "history", "note": "世界遺産・金色の御堂"}, {"id": "p027", "name": "毛越寺", "pref": "岩手県", "city": "平泉町", "category": "history", "note": "浄土庭園が美しい古刹"}, {"id": "p028", "name": "盛岡城跡公園", "pref": "岩手県", "city": "盛岡市", "category": "history", "note": "石垣が残る桜の名所"}, {"id": "p029", "name": "小岩井農場", "pref": "岩手県", "city": "雫石町", "category": "theme", "note": "広大な牧場で体験・グルメ"}, {"id": "p030", "name": "もりおか啄木・賢治青春館", "pref": "岩手県", "city": "盛岡市", "category": "museum", "note": "旧銀行建築を活用した展示館"}, {"id": "p031", "name": "宮沢賢治記念館", "pref": "岩手県", "city": "花巻市", "category": "museum", "note": "賢治の生涯と作品を紹介"}, {"id": "p032", "name": "遠野ふるさと村", "pref": "岩手県", "city": "遠野市", "category": "town", "note": "昔話・民話の里の集落"}, {"id": "p033", "name": "松島", "pref": "宮城県", "city": "松島町", "category": "nature", "note": "日本三景の多島美"}, {"id": "p034", "name": "秋保大滝", "pref": "宮城県", "city": "仙台市", "category": "nature", "note": "日本三大滝の一つ"}, {"id": "p035", "name": "蔵王お釜", "pref": "宮城県", "city": "蔵王町", "category": "nature", "note": "神秘的なエメラルドの火口湖"}, {"id": "p036", "name": "鳴子峡", "pref": "宮城県", "city": "大崎市", "category": "nature", "note": "紅葉の名所として有名"}, {"id": "p037", "name": "仙台城跡（青葉城址）", "pref": "宮城県", "city": "仙台市", "category": "history", "note": "伊達政宗ゆかりの城跡"}, {"id": "p038", "name": "瑞巌寺", "pref": "宮城県", "city": "松島町", "category": "history", "note": "伊達家ゆかりの禅寺"}, {"id": "p039", "name": "仙台うみの杜水族館", "pref": "宮城県", "city": "仙台市", "category": "theme", "note": "イルカショーが人気"}, {"id": "p040", "name": "八木山ベニーランド", "pref": "宮城県", "city": "仙台市", "category": "theme", "note": "老舗の遊園地"}, {"id": "p041", "name": "宮城県美術館", "pref": "宮城県", "city": "仙台市", "category": "museum", "note": "近現代美術の作品を収蔵"}, {"id": "p042", "name": "仙台朝市", "pref": "宮城県", "city": "仙台市", "category": "town", "note": "仙台の台所と呼ばれる市場"}, {"id": "p043", "name": "乳頭温泉郷", "pref": "秋田県", "city": "仙北市", "category": "nature", "note": "秘湯として名高い温泉郷"}, {"id": "p044", "name": "抱返り渓谷", "pref": "秋田県", "city": "仙北市", "category": "nature", "note": "紅葉と神の岩橋が名物"}, {"id": "p045", "name": "田沢湖", "pref": "秋田県", "city": "仙北市", "category": "nature", "note": "日本一深い湖"}, {"id": "p046", "name": "千秋公園", "pref": "秋田県", "city": "秋田市", "category": "history", "note": "久保田城跡の桜名所"}, {"id": "p047", "name": "男鹿水族館GAO", "pref": "秋田県", "city": "男鹿市", "category": "theme", "note": "ホッキョクグマが人気"}, {"id": "p048", "name": "秋田市大森山動物園", "pref": "秋田県", "city": "秋田市", "category": "theme", "note": "日本海を望む動物園"}, {"id": "p049", "name": "なまはげ館", "pref": "秋田県", "city": "男鹿市", "category": "museum", "note": "なまはげの資料展示"}, {"id": "p050", "name": "秋田犬会館", "pref": "秋田県", "city": "大館市", "category": "museum", "note": "秋田犬の資料館"}, {"id": "p051", "name": "増田の内蔵", "pref": "秋田県", "city": "横手市", "category": "town", "note": "内蔵が並ぶ伝統的町並み"}, {"id": "p052", "name": "角館武家屋敷", "pref": "秋田県", "city": "仙北市", "category": "town", "note": "みちのくの小京都"}, {"id": "p053", "name": "最上川舟下り", "pref": "山形県", "city": "戸沢村", "category": "nature", "note": "芭蕉も詠んだ大河"}, {"id": "p054", "name": "月山", "pref": "山形県", "city": "庄内町", "category": "nature", "note": "出羽三山の主峰"}, {"id": "p055", "name": "蔵王温泉・樹氷", "pref": "山形県", "city": "山形市", "category": "nature", "note": "冬のスノーモンスター"}, {"id": "p056", "name": "上杉神社", "pref": "山形県", "city": "米沢市", "category": "history", "note": "上杉謙信を祀る神社"}, {"id": "p057", "name": "山寺（立石寺）", "pref": "山形県", "city": "山形市", "category": "history", "note": "断崖に建つ古刹"}, {"id": "p058", "name": "羽黒山（出羽三山）", "pref": "山形県", "city": "鶴岡市", "category": "history", "note": "五重塔と杉並木の参道"}, {"id": "p059", "name": "蔵王ロープウェイ", "pref": "山形県", "city": "山形市", "category": "theme", "note": "樹氷や紅葉を空中散歩"}, {"id": "p060", "name": "天童市将棋資料館", "pref": "山形県", "city": "天童市", "category": "museum", "note": "将棋駒の生産で有名"}, {"id": "p061", "name": "山居倉庫", "pref": "山形県", "city": "酒田市", "category": "town", "note": "黒塗りの米蔵が並ぶ"}, {"id": "p062", "name": "銀山温泉", "pref": "山形県", "city": "尾花沢市", "category": "town", "note": "大正ロマンの温泉街"}, {"id": "p063", "name": "五色沼", "pref": "福島県", "city": "北塩原村", "category": "nature", "note": "磐梯高原の色とりどりの沼"}, {"id": "p064", "name": "猪苗代湖", "pref": "福島県", "city": "猪苗代町", "category": "nature", "note": "天鏡湖と呼ばれる湖"}, {"id": "p065", "name": "磐梯山", "pref": "福島県", "city": "磐梯町", "category": "nature", "note": "会津富士と呼ばれる名峰"}, {"id": "p066", "name": "鶴ヶ城（会津若松城）", "pref": "福島県", "city": "会津若松市", "category": "history", "note": "白虎隊ゆかりの名城"}, {"id": "p067", "name": "スパリゾートハワイアンズ", "pref": "福島県", "city": "いわき市", "category": "theme", "note": "南国風の温泉リゾート"}, {"id": "p068", "name": "東北サファリパーク", "pref": "福島県", "city": "二本松市", "category": "theme", "note": "車で回るサファリ動物園"}, {"id": "p069", "name": "会津武家屋敷", "pref": "福島県", "city": "会津若松市", "category": "museum", "note": "会津藩家老屋敷を復元"}, {"id": "p070", "name": "福島県立博物館", "pref": "福島県", "city": "会津若松市", "category": "museum", "note": "福島の歴史・文化を展示"}, {"id": "p071", "name": "七日町通り", "pref": "福島県", "city": "会津若松市", "category": "town", "note": "レトロな街並みが残る通り"}, {"id": "p072", "name": "大内宿", "pref": "福島県", "city": "下郷町", "category": "town", "note": "茅葺き屋根の宿場町"}, {"id": "p073", "name": "偕楽園", "pref": "茨城県", "city": "水戸市", "category": "nature", "note": "日本三名園の一つ"}, {"id": "p074", "name": "国営ひたち海浜公園", "pref": "茨城県", "city": "ひたちなか市", "category": "nature", "note": "ネモフィラの丘"}, {"id": "p075", "name": "筑波山", "pref": "茨城県", "city": "つくば市", "category": "nature", "note": "関東の名峰"}, {"id": "p076", "name": "袋田の滝", "pref": "茨城県", "city": "大子町", "category": "nature", "note": "日本三名瀑の一つ"}, {"id": "p077", "name": "大洗磯前神社", "pref": "茨城県", "city": "大洗町", "category": "history", "note": "海上の鳥居が有名"}, {"id": "p078", "name": "牛久大仏", "pref": "茨城県", "city": "牛久市", "category": "history", "note": "世界最大級の大仏"}, {"id": "p079", "name": "笠間稲荷神社", "pref": "茨城県", "city": "笠間市", "category": "history", "note": "日本三大稲荷"}, {"id": "p080", "name": "鹿島神宮", "pref": "茨城県", "city": "鹿嶋市", "category": "history", "note": "関東屈指の古社"}, {"id": "p081", "name": "アクアワールド茨城県大洗水族館", "pref": "茨城県", "city": "大洗町", "category": "theme", "note": "サメの展示が充実"}, {"id": "p082", "name": "那珂湊おさかな市場", "pref": "茨城県", "city": "ひたちなか市", "category": "town", "note": "新鮮な海鮮市場"}, {"id": "p083", "name": "中禅寺湖", "pref": "栃木県", "city": "日光市", "category": "nature", "note": "日光の高原湖"}, {"id": "p084", "name": "華厳の滝", "pref": "栃木県", "city": "日光市", "category": "nature", "note": "日本三大瀑布"}, {"id": "p085", "name": "足利フラワーパーク", "pref": "栃木県", "city": "足利市", "category": "nature", "note": "藤の花が名物"}, {"id": "p086", "name": "那須高原", "pref": "栃木県", "city": "那須町", "category": "nature", "note": "避暑地として人気"}, {"id": "p087", "name": "日光東照宮", "pref": "栃木県", "city": "日光市", "category": "history", "note": "世界遺産の東照宮"}, {"id": "p088", "name": "輪王寺", "pref": "栃木県", "city": "日光市", "category": "history", "note": "日光山の名刹"}, {"id": "p089", "name": "東武ワールドスクウェア", "pref": "栃木県", "city": "日光市", "category": "theme", "note": "世界の建造物模型"}, {"id": "p090", "name": "那須どうぶつ王国", "pref": "栃木県", "city": "那須町", "category": "theme", "note": "動物との触れ合い"}, {"id": "p091", "name": "大谷資料館", "pref": "栃木県", "city": "宇都宮市", "category": "museum", "note": "巨大な地下採石場跡"}, {"id": "p092", "name": "鬼怒川温泉", "pref": "栃木県", "city": "日光市", "category": "town", "note": "渓谷沿いの温泉街"}, {"id": "p093", "name": "妙義山", "pref": "群馬県", "city": "富岡市", "category": "nature", "note": "奇岩が連なる名山"}, {"id": "p094", "name": "尾瀬", "pref": "群馬県", "city": "片品村", "category": "nature", "note": "湿原の国立公園"}, {"id": "p095", "name": "榛名湖", "pref": "群馬県", "city": "高崎市", "category": "nature", "note": "榛名山のカルデラ湖"}, {"id": "p096", "name": "谷川岳", "pref": "群馬県", "city": "みなかみ町", "category": "nature", "note": "日本百名山の一つ"}, {"id": "p097", "name": "富岡製糸場", "pref": "群馬県", "city": "富岡市", "category": "history", "note": "世界遺産の製糸場"}, {"id": "p098", "name": "高崎白衣大観音", "pref": "群馬県", "city": "高崎市", "category": "history", "note": "高崎のシンボル"}, {"id": "p099", "name": "群馬サファリパーク", "pref": "群馬県", "city": "富岡市", "category": "theme", "note": "車で回るサファリ"}, {"id": "p100", "name": "伊香保温泉", "pref": "群馬県", "city": "渋川市", "category": "town", "note": "石段街が有名"}, {"id": "p101", "name": "四万温泉", "pref": "群馬県", "city": "中之条町", "category": "town", "note": "秘湯の温泉地"}, {"id": "p102", "name": "草津温泉", "pref": "群馬県", "city": "草津町", "category": "town", "note": "日本三名泉"}, {"id": "p103", "name": "巾着田曼珠沙華公園", "pref": "埼玉県", "city": "日高市", "category": "nature", "note": "彼岸花の名所"}, {"id": "p104", "name": "羊山公園(芝桜の丘)", "pref": "埼玉県", "city": "秩父市", "category": "nature", "note": "芝桜が咲き誇る"}, {"id": "p105", "name": "長瀞(岩畳)", "pref": "埼玉県", "city": "長瀞町", "category": "nature", "note": "ライン下りが名物"}, {"id": "p106", "name": "さきたま古墳公園", "pref": "埼玉県", "city": "行田市", "category": "history", "note": "古代の古墳群"}, {"id": "p107", "name": "三峯神社", "pref": "埼玉県", "city": "秩父市", "category": "history", "note": "秩父の霊山の古社"}, {"id": "p108", "name": "川越氷川神社", "pref": "埼玉県", "city": "川越市", "category": "history", "note": "縁結びの神社"}, {"id": "p109", "name": "秩父神社", "pref": "埼玉県", "city": "秩父市", "category": "history", "note": "秩父夜祭で有名"}, {"id": "p110", "name": "東武動物公園", "pref": "埼玉県", "city": "宮代町", "category": "theme", "note": "動物園と遊園地"}, {"id": "p111", "name": "鉄道博物館", "pref": "埼玉県", "city": "さいたま市", "category": "museum", "note": "鉄道の歴史を展示"}, {"id": "p112", "name": "小江戸川越(蔵造りの町並み)", "pref": "埼玉県", "city": "川越市", "category": "town", "note": "蔵造りの町並み"}, {"id": "p113", "name": "マザー牧場", "pref": "千葉県", "city": "富津市", "category": "nature", "note": "花と動物の牧場"}, {"id": "p114", "name": "濃溝の滝(亀岩の洞窟)", "pref": "千葉県", "city": "君津市", "category": "nature", "note": "神秘的な洞窟"}, {"id": "p115", "name": "犬吠埼", "pref": "千葉県", "city": "銚子市", "category": "nature", "note": "関東最東端の岬"}, {"id": "p116", "name": "成田山新勝寺", "pref": "千葉県", "city": "成田市", "category": "history", "note": "初詣で有名な古刹"}, {"id": "p117", "name": "香取神宮", "pref": "千葉県", "city": "香取市", "category": "history", "note": "下総国一之宮"}, {"id": "p118", "name": "東京ディズニーシー", "pref": "千葉県", "city": "浦安市", "category": "theme", "note": "海がテーマの遊園地"}, {"id": "p119", "name": "東京ディズニーランド", "pref": "千葉県", "city": "浦安市", "category": "theme", "note": "夢の国のテーマパーク"}, {"id": "p120", "name": "鴨川シーワールド", "pref": "千葉県", "city": "鴨川市", "category": "theme", "note": "シャチのショーが人気"}, {"id": "p121", "name": "国立歴史民俗博物館", "pref": "千葉県", "city": "佐倉市", "category": "museum", "note": "日本の歴史を展示"}, {"id": "p122", "name": "佐原の町並み", "pref": "千葉県", "city": "香取市", "category": "town", "note": "小江戸と呼ばれる町"}, {"id": "p123", "name": "新宿御苑", "pref": "東京都", "city": "新宿区", "category": "nature", "note": "都会のオアシス庭園"}, {"id": "p124", "name": "高尾山", "pref": "東京都", "city": "八王子市", "category": "nature", "note": "都内屈指の登山名所"}, {"id": "p125", "name": "明治神宮", "pref": "東京都", "city": "渋谷区", "category": "history", "note": "都心の緑豊かな杜"}, {"id": "p126", "name": "浅草寺", "pref": "東京都", "city": "台東区", "category": "history", "note": "浅草のシンボル"}, {"id": "p127", "name": "皇居", "pref": "東京都", "city": "千代田区", "category": "history", "note": "天皇陛下のお住まい"}, {"id": "p128", "name": "お台場", "pref": "東京都", "city": "港区", "category": "theme", "note": "湾岸の観光エリア"}, {"id": "p129", "name": "上野動物園", "pref": "東京都", "city": "台東区", "category": "theme", "note": "パンダで有名な動物園"}, {"id": "p130", "name": "東京国立博物館", "pref": "東京都", "city": "台東区", "category": "museum", "note": "日本最古の博物館"}, {"id": "p131", "name": "森美術館", "pref": "東京都", "city": "港区", "category": "museum", "note": "六本木ヒルズの美術館"}, {"id": "p132", "name": "東京スカイツリー", "pref": "東京都", "city": "墨田区", "category": "town", "note": "世界一高い電波塔"}, {"id": "p133", "name": "東京タワー", "pref": "東京都", "city": "港区", "category": "town", "note": "東京のシンボルタワー"}, {"id": "p134", "name": "渋谷スクランブル交差点", "pref": "東京都", "city": "渋谷区", "category": "town", "note": "世界的に有名な交差点"}, {"id": "p135", "name": "大涌谷", "pref": "神奈川県", "city": "箱根町", "category": "nature", "note": "黒たまごが名物"}, {"id": "p136", "name": "江の島", "pref": "神奈川県", "city": "藤沢市", "category": "nature", "note": "海に浮かぶ島"}, {"id": "p137", "name": "芦ノ湖", "pref": "神奈川県", "city": "箱根町", "category": "nature", "note": "富士山を望む湖"}, {"id": "p138", "name": "小田原城", "pref": "神奈川県", "city": "小田原市", "category": "history", "note": "北条氏の居城跡"}, {"id": "p139", "name": "鎌倉大仏(高徳院)", "pref": "神奈川県", "city": "鎌倉市", "category": "history", "note": "鎌倉のシンボル大仏"}, {"id": "p140", "name": "鶴岡八幡宮", "pref": "神奈川県", "city": "鎌倉市", "category": "history", "note": "鎌倉最大の神社"}, {"id": "p141", "name": "八景島シーパラダイス", "pref": "神奈川県", "city": "横浜市金沢区", "category": "theme", "note": "水族館併設の遊園地"}, {"id": "p142", "name": "箱根彫刻の森美術館", "pref": "神奈川県", "city": "箱根町", "category": "museum", "note": "野外彫刻の美術館"}, {"id": "p143", "name": "みなとみらい21", "pref": "神奈川県", "city": "横浜市西区", "category": "town", "note": "横浜の未来的な街並み"}, {"id": "p144", "name": "横浜中華街", "pref": "神奈川県", "city": "横浜市中区", "category": "town", "note": "日本最大の中華街"}, {"id": "p145", "name": "横浜赤レンガ倉庫", "pref": "神奈川県", "city": "横浜市中区", "category": "town", "note": "港町のレトロな倉庫"}, {"id": "p146", "name": "弥彦山ロープウェイ", "pref": "新潟県", "city": "弥彦村", "category": "nature", "note": "山頂から日本海一望"}, {"id": "p147", "name": "清津峡渓谷トンネル", "pref": "新潟県", "city": "十日町市", "category": "nature", "note": "鏡張りの絶景トンネル"}, {"id": "p148", "name": "佐渡金山", "pref": "新潟県", "city": "佐渡市", "category": "history", "note": "世界遺産の史跡"}, {"id": "p149", "name": "弥彦神社", "pref": "新潟県", "city": "弥彦村", "category": "history", "note": "越後国一宮"}, {"id": "p150", "name": "高田城址公園", "pref": "新潟県", "city": "上越市", "category": "history", "note": "日本三大夜桜の一つ"}, {"id": "p151", "name": "トキの森公園", "pref": "新潟県", "city": "佐渡市", "category": "theme", "note": "朱鷺の保護観察施設"}, {"id": "p152", "name": "新潟市水族館マリンピア日本海", "pref": "新潟県", "city": "新潟市", "category": "theme", "note": "日本海の生物を展示"}, {"id": "p153", "name": "越後妻有里山現代美術館MonET", "pref": "新潟県", "city": "十日町市", "category": "museum", "note": "大地の芸術祭の拠点"}, {"id": "p154", "name": "古町・萬代橋エリア", "pref": "新潟県", "city": "新潟市", "category": "town", "note": "新潟市街の中心地"}, {"id": "p155", "name": "寺泊魚の市場通り", "pref": "新潟県", "city": "長岡市", "category": "town", "note": "海産物の並ぶ市場通り"}, {"id": "p156", "name": "富岩運河環水公園", "pref": "富山県", "city": "富山市", "category": "nature", "note": "世界一美しいスタバ"}, {"id": "p157", "name": "立山黒部アルペンルート", "pref": "富山県", "city": "立山町", "category": "nature", "note": "雪の大谷で有名"}, {"id": "p158", "name": "雨晴海岸", "pref": "富山県", "city": "高岡市", "category": "nature", "note": "海越しに立山連峰望む"}, {"id": "p159", "name": "黒部峡谷トロッコ電車", "pref": "富山県", "city": "黒部市", "category": "nature", "note": "峡谷を走る観光列車"}, {"id": "p160", "name": "瑞龍寺", "pref": "富山県", "city": "高岡市", "category": "history", "note": "国宝の曹洞宗寺院"}, {"id": "p161", "name": "高岡大仏", "pref": "富山県", "city": "高岡市", "category": "history", "note": "日本三大仏の一つ"}, {"id": "p162", "name": "魚津水族館", "pref": "富山県", "city": "魚津市", "category": "theme", "note": "現存最古級の水族館"}, {"id": "p163", "name": "富山市ガラス美術館", "pref": "富山県", "city": "富山市", "category": "museum", "note": "隈研吾設計の美術館"}, {"id": "p164", "name": "五箇山相倉合掌造り集落", "pref": "富山県", "city": "南砺市", "category": "town", "note": "世界遺産の合掌集落"}, {"id": "p165", "name": "氷見漁港場外市場ひみ番屋街", "pref": "富山県", "city": "氷見市", "category": "town", "note": "寒ブリで有名な道の駅"}, {"id": "p166", "name": "兼六園", "pref": "石川県", "city": "金沢市", "category": "nature", "note": "日本三名園の一つ"}, {"id": "p167", "name": "千里浜なぎさドライブウェイ", "pref": "石川県", "city": "羽咋市", "category": "nature", "note": "車で走れる砂浜"}, {"id": "p168", "name": "白米千枚田", "pref": "石川県", "city": "輪島市", "category": "nature", "note": "棚田が海に迫る絶景"}, {"id": "p169", "name": "妙立寺", "pref": "石川県", "city": "金沢市", "category": "history", "note": "通称・忍者寺"}, {"id": "p170", "name": "那谷寺", "pref": "石川県", "city": "小松市", "category": "history", "note": "奇岩遊仙境の古刹"}, {"id": "p171", "name": "金沢城公園", "pref": "石川県", "city": "金沢市", "category": "history", "note": "加賀百万石の居城跡"}, {"id": "p172", "name": "のとじま水族館", "pref": "石川県", "city": "七尾市", "category": "theme", "note": "ジンベエザメで有名"}, {"id": "p173", "name": "金沢21世紀美術館", "pref": "石川県", "city": "金沢市", "category": "museum", "note": "プールが有名な現代美術館"}, {"id": "p174", "name": "ひがし茶屋街", "pref": "石川県", "city": "金沢市", "category": "town", "note": "格子戸の茶屋町並み"}, {"id": "p175", "name": "近江町市場", "pref": "石川県", "city": "金沢市", "category": "town", "note": "金沢の台所と称される市場"}, {"id": "p176", "name": "三方五湖", "pref": "福井県", "city": "若狭町", "category": "nature", "note": "五色に見える湖群"}, {"id": "p177", "name": "東尋坊", "pref": "福井県", "city": "坂井市", "category": "nature", "note": "柱状節理の断崖絶景"}, {"id": "p178", "name": "一乗谷朝倉氏遺跡", "pref": "福井県", "city": "福井市", "category": "history", "note": "戦国大名の城下町跡"}, {"id": "p179", "name": "丸岡城", "pref": "福井県", "city": "坂井市", "category": "history", "note": "現存12天守の一つ"}, {"id": "p180", "name": "永平寺", "pref": "福井県", "city": "永平寺町", "category": "history", "note": "曹洞宗大本山"}, {"id": "p181", "name": "芝政ワールド", "pref": "福井県", "city": "坂井市", "category": "theme", "note": "海に面した遊園地"}, {"id": "p182", "name": "越前松島水族館", "pref": "福井県", "city": "坂井市", "category": "theme", "note": "海辺の体験型水族館"}, {"id": "p183", "name": "福井県立恐竜博物館", "pref": "福井県", "city": "勝山市", "category": "museum", "note": "世界三大恐竜博物館"}, {"id": "p184", "name": "三国湊町並み", "pref": "福井県", "city": "坂井市", "category": "town", "note": "北前船で栄えた港町"}, {"id": "p185", "name": "富士山五合目", "pref": "山梨県", "city": "富士河口湖町", "category": "nature", "note": "富士登山の玄関口"}, {"id": "p186", "name": "忍野八海", "pref": "山梨県", "city": "忍野村", "category": "nature", "note": "富士の湧水池群"}, {"id": "p187", "name": "河口湖", "pref": "山梨県", "city": "富士河口湖町", "category": "nature", "note": "富士五湖の代表格"}, {"id": "p188", "name": "武田神社", "pref": "山梨県", "city": "甲府市", "category": "history", "note": "武田信玄公を祀る"}, {"id": "p189", "name": "甲府城跡舞鶴城公園", "pref": "山梨県", "city": "甲府市", "category": "history", "note": "甲府のシンボル城跡"}, {"id": "p190", "name": "富士急ハイランド", "pref": "山梨県", "city": "富士吉田市", "category": "theme", "note": "絶叫マシンで有名な遊園地"}, {"id": "p191", "name": "山梨県立富士山世界遺産センター", "pref": "山梨県", "city": "富士河口湖町", "category": "museum", "note": "富士山の価値を紹介"}, {"id": "p192", "name": "山梨県立美術館", "pref": "山梨県", "city": "甲府市", "category": "museum", "note": "ミレー作品の収蔵で有名"}, {"id": "p193", "name": "ぶどうの丘", "pref": "山梨県", "city": "甲州市", "category": "town", "note": "ワイン産地の丘"}, {"id": "p194", "name": "西湖いやしの里根場", "pref": "山梨県", "city": "富士河口湖町", "category": "town", "note": "茅葺き集落を再現"}, {"id": "p195", "name": "上高地", "pref": "長野県", "city": "松本市", "category": "nature", "note": "北アルプスの秘境"}, {"id": "p196", "name": "白馬・栂池自然園", "pref": "長野県", "city": "白馬村", "category": "nature", "note": "北アルプス麓の湿原"}, {"id": "p197", "name": "阿智村天空の楽園", "pref": "長野県", "city": "阿智村", "category": "nature", "note": "日本一の星空ツアー"}, {"id": "p198", "name": "善光寺", "pref": "長野県", "city": "長野市", "category": "history", "note": "一生に一度は参れ"}, {"id": "p199", "name": "松本城", "pref": "長野県", "city": "松本市", "category": "history", "note": "現存12天守・国宝"}, {"id": "p200", "name": "諏訪大社", "pref": "長野県", "city": "諏訪市", "category": "history", "note": "御柱祭で知られる古社"}, {"id": "p201", "name": "地獄谷野猿公苑", "pref": "長野県", "city": "山ノ内町", "category": "theme", "note": "温泉に入る野生猿"}, {"id": "p202", "name": "安曇野ちひろ美術館", "pref": "長野県", "city": "松本市", "category": "museum", "note": "いわさきちひろの美術館"}, {"id": "p203", "name": "小布施町並み", "pref": "長野県", "city": "小布施町", "category": "town", "note": "栗菓子と北斎の町"}, {"id": "p204", "name": "軽井沢銀座", "pref": "長野県", "city": "軽井沢町", "category": "town", "note": "避暑地の中心商店街"}, {"id": "p205", "name": "モネの池", "pref": "岐阜県", "city": "関市", "category": "nature", "note": "根道神社の名もなき池"}, {"id": "p206", "name": "飛騨大鍾乳洞", "pref": "岐阜県", "city": "高山市", "category": "nature", "note": "日本一高所の鍾乳洞"}, {"id": "p207", "name": "養老の滝・養老公園", "pref": "岐阜県", "city": "養老町", "category": "nature", "note": "日本の滝百選"}, {"id": "p208", "name": "岐阜城", "pref": "岐阜県", "city": "岐阜市", "category": "history", "note": "織田信長ゆかりの城"}, {"id": "p209", "name": "苗木城跡", "pref": "岐阜県", "city": "中津川市", "category": "history", "note": "天空の山城と称される"}, {"id": "p210", "name": "長良川鵜飼", "pref": "岐阜県", "city": "岐阜市", "category": "theme", "note": "1300年続く伝統漁"}, {"id": "p211", "name": "岐阜市歴史博物館", "pref": "岐阜県", "city": "岐阜市", "category": "museum", "note": "岐阜城下の歴史を展示"}, {"id": "p212", "name": "白川郷荻町合掌造り集落", "pref": "岐阜県", "city": "白川村", "category": "town", "note": "世界遺産の合掌集落"}, {"id": "p213", "name": "馬籠宿", "pref": "岐阜県", "city": "中津川市", "category": "town", "note": "中山道の宿場町"}, {"id": "p214", "name": "高山古い町並み", "pref": "岐阜県", "city": "高山市", "category": "town", "note": "飛騨の小京都"}, {"id": "p215", "name": "三保松原", "pref": "静岡県", "city": "静岡市", "category": "nature", "note": "富士山と松原の世界遺産"}, {"id": "p216", "name": "日本平", "pref": "静岡県", "city": "静岡市", "category": "nature", "note": "ロープウェイで久能山へ"}, {"id": "p217", "name": "河津七滝", "pref": "静岡県", "city": "河津町", "category": "nature", "note": "河津桜でも有名"}, {"id": "p218", "name": "久能山東照宮", "pref": "静岡県", "city": "静岡市", "category": "history", "note": "徳川家康公を祀る社"}, {"id": "p219", "name": "掛川城", "pref": "静岡県", "city": "掛川市", "category": "history", "note": "初の木造復元天守"}, {"id": "p220", "name": "登呂遺跡", "pref": "静岡県", "city": "静岡市", "category": "history", "note": "弥生時代の集落遺跡"}, {"id": "p221", "name": "富士サファリパーク", "pref": "静岡県", "city": "裾野市", "category": "theme", "note": "車で回るサファリ"}, {"id": "p222", "name": "熱川バナナワニ園", "pref": "静岡県", "city": "東伊豆町", "category": "theme", "note": "ワニと熱帯植物の楽園"}, {"id": "p223", "name": "静岡県立美術館", "pref": "静岡県", "city": "静岡市", "category": "museum", "note": "ロダン館を併設"}, {"id": "p224", "name": "修善寺温泉", "pref": "静岡県", "city": "伊豆市", "category": "town", "note": "伊豆最古の温泉地"}, {"id": "p225", "name": "熱海温泉街", "pref": "静岡県", "city": "熱海市", "category": "town", "note": "首都圏近郊の名湯"}, {"id": "p226", "name": "香嵐渓", "pref": "愛知県", "city": "豊田市", "category": "nature", "note": "紅葉の名所"}, {"id": "p227", "name": "名古屋城", "pref": "愛知県", "city": "名古屋市", "category": "history", "note": "金鯱で有名な城"}, {"id": "p228", "name": "熱田神宮", "pref": "愛知県", "city": "名古屋市", "category": "history", "note": "三種の神器を祀る古社"}, {"id": "p229", "name": "犬山城", "pref": "愛知県", "city": "犬山市", "category": "history", "note": "現存12天守・国宝"}, {"id": "p230", "name": "ラグーナテンボス", "pref": "愛知県", "city": "蒲郡市", "category": "theme", "note": "海辺の複合リゾート"}, {"id": "p231", "name": "名古屋港水族館", "pref": "愛知県", "city": "名古屋市", "category": "theme", "note": "シャチの飼育で有名"}, {"id": "p232", "name": "東山動植物園", "pref": "愛知県", "city": "名古屋市", "category": "theme", "note": "国内屈指の動植物園"}, {"id": "p233", "name": "トヨタ産業技術記念館", "pref": "愛知県", "city": "名古屋市", "category": "museum", "note": "自動車産業の歴史を展示"}, {"id": "p234", "name": "リニア・鉄道館", "pref": "愛知県", "city": "名古屋市", "category": "museum", "note": "新幹線と鉄道の博物館"}, {"id": "p235", "name": "博物館明治村", "pref": "愛知県", "city": "犬山市", "category": "museum", "note": "明治建築の野外博物館"}, {"id": "p236", "name": "大須商店街", "pref": "愛知県", "city": "名古屋市", "category": "town", "note": "下町情緒のグルメ街"}, {"id": "p237", "name": "なばなの里", "pref": "三重県", "city": "桑名市", "category": "nature", "note": "花とイルミネーション"}, {"id": "p238", "name": "二見興玉神社（夫婦岩）", "pref": "三重県", "city": "伊勢市", "category": "nature", "note": "夫婦岩の日の出絶景"}, {"id": "p239", "name": "熊野古道（伊勢路）", "pref": "三重県", "city": "熊野市", "category": "nature", "note": "世界遺産の巡礼路"}, {"id": "p240", "name": "赤目四十八滝", "pref": "三重県", "city": "名張市", "category": "nature", "note": "渓谷に連なる滝群"}, {"id": "p241", "name": "ミキモト真珠島", "pref": "三重県", "city": "鳥羽市", "category": "history", "note": "真珠養殖発祥の地"}, {"id": "p242", "name": "伊勢神宮", "pref": "三重県", "city": "伊勢市", "category": "history", "note": "皇室の祖神を祀る本宗"}, {"id": "p243", "name": "松阪城跡", "pref": "三重県", "city": "松阪市", "category": "history", "note": "石垣が残る城跡"}, {"id": "p244", "name": "志摩スペイン村", "pref": "三重県", "city": "志摩市", "category": "theme", "note": "スペイン風テーマパーク"}, {"id": "p245", "name": "鈴鹿サーキット", "pref": "三重県", "city": "鈴鹿市", "category": "theme", "note": "モータースポーツの聖地"}, {"id": "p246", "name": "鳥羽水族館", "pref": "三重県", "city": "鳥羽市", "category": "theme", "note": "ラッコで人気の水族館"}, {"id": "p247", "name": "おかげ横丁", "pref": "三重県", "city": "伊勢市", "category": "town", "note": "伊勢神宮の門前町"}, {"id": "p248", "name": "びわ湖バレイ", "pref": "滋賀県", "city": "大津市", "category": "nature", "note": "ロープウェイと絶景"}, {"id": "p249", "name": "メタセコイア並木", "pref": "滋賀県", "city": "高島市", "category": "nature", "note": "並木道の絶景"}, {"id": "p250", "name": "琵琶湖", "pref": "滋賀県", "city": "大津市ほか", "category": "nature", "note": "日本最大の湖"}, {"id": "p251", "name": "白鬚神社", "pref": "滋賀県", "city": "高島市", "category": "nature", "note": "湖中に浮かぶ鳥居"}, {"id": "p252", "name": "三井寺（園城寺）", "pref": "滋賀県", "city": "大津市", "category": "history", "note": "天台寺門宗の総本山"}, {"id": "p253", "name": "多賀大社", "pref": "滋賀県", "city": "犬上郡多賀町", "category": "history", "note": "お多賀さんと親しまれる社"}, {"id": "p254", "name": "彦根城", "pref": "滋賀県", "city": "彦根市", "category": "history", "note": "国宝天守の名城"}, {"id": "p255", "name": "比叡山延暦寺", "pref": "滋賀県", "city": "大津市", "category": "history", "note": "世界遺産の古刹"}, {"id": "p256", "name": "近江八幡・八幡堀", "pref": "滋賀県", "city": "近江八幡市", "category": "town", "note": "水郷のまちなみ"}, {"id": "p257", "name": "黒壁スクエア", "pref": "滋賀県", "city": "長浜市", "category": "town", "note": "ガラス工芸のまちなみ"}, {"id": "p258", "name": "嵐山（渡月橋・竹林の道）", "pref": "京都府", "city": "京都市右京区", "category": "nature", "note": "竹林と渡月橋の景観"}, {"id": "p259", "name": "貴船神社", "pref": "京都府", "city": "京都市左京区", "category": "nature", "note": "川床と縁結びの社"}, {"id": "p260", "name": "二条城", "pref": "京都府", "city": "京都市中京区", "category": "history", "note": "徳川家の世界遺産城"}, {"id": "p261", "name": "伏見稲荷大社", "pref": "京都府", "city": "京都市伏見区", "category": "history", "note": "千本鳥居で有名"}, {"id": "p262", "name": "平安神宮", "pref": "京都府", "city": "京都市左京区", "category": "history", "note": "朱塗りの社殿と神苑"}, {"id": "p263", "name": "清水寺", "pref": "京都府", "city": "京都市東山区", "category": "history", "note": "清水の舞台で有名"}, {"id": "p264", "name": "金閣寺", "pref": "京都府", "city": "京都市北区", "category": "history", "note": "黄金に輝く舎利殿"}, {"id": "p265", "name": "銀閣寺", "pref": "京都府", "city": "京都市左京区", "category": "history", "note": "侘び寂びの東山文化"}, {"id": "p266", "name": "東映太秦映画村", "pref": "京都府", "city": "京都市右京区", "category": "theme", "note": "時代劇のテーマパーク"}, {"id": "p267", "name": "京都鉄道博物館", "pref": "京都府", "city": "京都市下京区", "category": "museum", "note": "実物車両が並ぶ博物館"}, {"id": "p268", "name": "祇園", "pref": "京都府", "city": "京都市東山区", "category": "town", "note": "花街情緒漂う街並み"}, {"id": "p269", "name": "錦市場", "pref": "京都府", "city": "京都市中京区", "category": "town", "note": "京の台所"}, {"id": "p270", "name": "万博記念公園", "pref": "大阪府", "city": "吹田市", "category": "nature", "note": "太陽の塔がそびえる公園"}, {"id": "p271", "name": "住吉大社", "pref": "大阪府", "city": "大阪市住吉区", "category": "history", "note": "全国住吉神社の総本社"}, {"id": "p272", "name": "四天王寺", "pref": "大阪府", "city": "大阪市天王寺区", "category": "history", "note": "聖徳太子創建の古刹"}, {"id": "p273", "name": "大阪城", "pref": "大阪府", "city": "大阪市中央区", "category": "history", "note": "太閤秀吉築城の名城"}, {"id": "p274", "name": "ユニバーサル・スタジオ・ジャパン", "pref": "大阪府", "city": "大阪市此花区", "category": "theme", "note": "映画テーマパーク"}, {"id": "p275", "name": "天保山大観覧車", "pref": "大阪府", "city": "大阪市港区", "category": "theme", "note": "港のシンボル観覧車"}, {"id": "p276", "name": "海遊館", "pref": "大阪府", "city": "大阪市港区", "category": "theme", "note": "世界最大級の水族館"}, {"id": "p277", "name": "あべのハルカス", "pref": "大阪府", "city": "大阪市阿倍野区", "category": "museum", "note": "日本一高い展望ビル"}, {"id": "p278", "name": "大阪市立美術館", "pref": "大阪府", "city": "大阪市天王寺区", "category": "museum", "note": "東洋美術の名品収蔵"}, {"id": "p279", "name": "心斎橋・アメリカ村", "pref": "大阪府", "city": "大阪市中央区", "category": "town", "note": "若者に人気の繁華街"}, {"id": "p280", "name": "通天閣", "pref": "大阪府", "city": "大阪市浪速区", "category": "town", "note": "新世界のシンボルタワー"}, {"id": "p281", "name": "道頓堀", "pref": "大阪府", "city": "大阪市中央区", "category": "town", "note": "グリコサインの繁華街"}, {"id": "p282", "name": "六甲山", "pref": "兵庫県", "city": "神戸市灘区", "category": "nature", "note": "千万ドルの夜景"}, {"id": "p283", "name": "明石海峡大橋", "pref": "兵庫県", "city": "神戸市垂水区", "category": "nature", "note": "世界最長級の吊り橋"}, {"id": "p284", "name": "淡路島うずしお", "pref": "兵庫県", "city": "南あわじ市", "category": "nature", "note": "渦潮観潮船で人気"}, {"id": "p285", "name": "姫路城", "pref": "兵庫県", "city": "姫路市", "category": "history", "note": "白鷺城と称される国宝"}, {"id": "p286", "name": "竹田城跡", "pref": "兵庫県", "city": "朝来市", "category": "history", "note": "天空の城の異名"}, {"id": "p287", "name": "神戸市立王子動物園", "pref": "兵庫県", "city": "神戸市灘区", "category": "theme", "note": "パンダに会える動物園"}, {"id": "p288", "name": "兵庫県立美術館", "pref": "兵庫県", "city": "神戸市中央区", "category": "museum", "note": "安藤忠雄設計の美術館"}, {"id": "p289", "name": "メリケンパーク", "pref": "兵庫県", "city": "神戸市中央区", "category": "town", "note": "神戸港のシンボル公園"}, {"id": "p290", "name": "城崎温泉", "pref": "兵庫県", "city": "豊岡市", "category": "town", "note": "外湯めぐりの温泉街"}, {"id": "p291", "name": "有馬温泉", "pref": "兵庫県", "city": "神戸市北区", "category": "town", "note": "日本三古湯の名湯"}, {"id": "p292", "name": "神戸北野異人館街", "pref": "兵庫県", "city": "神戸市中央区", "category": "town", "note": "異国情緒あふれる街並み"}, {"id": "p293", "name": "吉野山", "pref": "奈良県", "city": "吉野郡吉野町", "category": "nature", "note": "桜の名所として名高い"}, {"id": "p294", "name": "奈良公園", "pref": "奈良県", "city": "奈良市", "category": "nature", "note": "鹿と触れ合える公園"}, {"id": "p295", "name": "谷瀬の吊り橋", "pref": "奈良県", "city": "吉野郡十津川村", "category": "nature", "note": "日本有数の長さの吊橋"}, {"id": "p296", "name": "平城宮跡", "pref": "奈良県", "city": "奈良市", "category": "history", "note": "世界遺産の宮跡公園"}, {"id": "p297", "name": "春日大社", "pref": "奈良県", "city": "奈良市", "category": "history", "note": "朱塗り社殿と灯籠"}, {"id": "p298", "name": "東大寺", "pref": "奈良県", "city": "奈良市", "category": "history", "note": "奈良の大仏で有名"}, {"id": "p299", "name": "橿原神宮", "pref": "奈良県", "city": "橿原市", "category": "history", "note": "神武天皇を祀る神社"}, {"id": "p300", "name": "法隆寺", "pref": "奈良県", "city": "生駒郡斑鳩町", "category": "history", "note": "世界最古の木造建築"}, {"id": "p301", "name": "興福寺", "pref": "奈良県", "city": "奈良市", "category": "history", "note": "五重塔がそびえる古刹"}, {"id": "p302", "name": "薬師寺", "pref": "奈良県", "city": "奈良市", "category": "history", "note": "白鳳伽藍の美しい寺院"}, {"id": "p303", "name": "奈良国立博物館", "pref": "奈良県", "city": "奈良市", "category": "museum", "note": "仏教美術の名品収蔵"}, {"id": "p304", "name": "ならまち", "pref": "奈良県", "city": "奈良市", "category": "town", "note": "町家が残る古い街並み"}, {"id": "p305", "name": "円月島", "pref": "和歌山県", "city": "西牟婁郡白浜町", "category": "nature", "note": "夕日が沈む奇岩の島"}, {"id": "p306", "name": "友ヶ島", "pref": "和歌山県", "city": "和歌山市", "category": "nature", "note": "廃墟の要塞跡が残る島"}, {"id": "p307", "name": "橋杭岩", "pref": "和歌山県", "city": "東牟婁郡串本町", "category": "nature", "note": "奇岩が連なる海岸"}, {"id": "p308", "name": "白良浜", "pref": "和歌山県", "city": "西牟婁郡白浜町", "category": "nature", "note": "白砂の美しいビーチ"}, {"id": "p309", "name": "那智の滝", "pref": "和歌山県", "city": "東牟婁郡那智勝浦町", "category": "nature", "note": "落差日本一の名瀑"}, {"id": "p310", "name": "和歌山城", "pref": "和歌山県", "city": "和歌山市", "category": "history", "note": "徳川御三家の名城"}, {"id": "p311", "name": "熊野本宮大社", "pref": "和歌山県", "city": "田辺市", "category": "history", "note": "熊野三山の総本宮"}, {"id": "p312", "name": "熊野那智大社", "pref": "和歌山県", "city": "東牟婁郡那智勝浦町", "category": "history", "note": "熊野三山の一つ"}, {"id": "p313", "name": "高野山（金剛峯寺・奥之院）", "pref": "和歌山県", "city": "伊都郡高野町", "category": "history", "note": "世界遺産の霊場"}, {"id": "p314", "name": "白浜アドベンチャーワールド", "pref": "和歌山県", "city": "西牟婁郡白浜町", "category": "theme", "note": "パンダに会えるテーマパーク"}, {"id": "p315", "name": "とれとれ市場", "pref": "和歌山県", "city": "西牟婁郡白浜町", "category": "town", "note": "海鮮グルメの人気市場"}, {"id": "p316", "name": "黒潮市場", "pref": "和歌山県", "city": "和歌山市", "category": "town", "note": "マグロ解体ショーの市場"}, {"id": "p317", "name": "とっとり花回廊", "pref": "鳥取県", "city": "南部町", "category": "nature", "note": "日本最大級の花公園"}, {"id": "p318", "name": "大山", "pref": "鳥取県", "city": "大山町", "category": "nature", "note": "中国地方最高峰"}, {"id": "p319", "name": "浦富海岸", "pref": "鳥取県", "city": "岩美町", "category": "nature", "note": "山陰の白砂青松"}, {"id": "p320", "name": "鳥取砂丘", "pref": "鳥取県", "city": "鳥取市", "category": "nature", "note": "日本最大級の砂丘"}, {"id": "p321", "name": "三徳山三佛寺投入堂", "pref": "鳥取県", "city": "三朝町", "category": "history", "note": "断崖に建つ国宝"}, {"id": "p322", "name": "白兎神社", "pref": "鳥取県", "city": "鳥取市", "category": "history", "note": "因幡の白うさぎ伝説"}, {"id": "p323", "name": "鳥取城跡・久松公園", "pref": "鳥取県", "city": "鳥取市", "category": "history", "note": "石垣が残る城跡"}, {"id": "p324", "name": "砂の美術館", "pref": "鳥取県", "city": "鳥取市", "category": "museum", "note": "砂像だけの美術館"}, {"id": "p325", "name": "水木しげるロード", "pref": "鳥取県", "city": "境港市", "category": "town", "note": "妖怪ブロンズ像の通り"}, {"id": "p326", "name": "皆生温泉", "pref": "鳥取県", "city": "米子市", "category": "town", "note": "海沿いの温泉街"}, {"id": "p327", "name": "宍道湖", "pref": "島根県", "city": "松江市", "category": "nature", "note": "夕日が美しい湖"}, {"id": "p328", "name": "稲佐の浜", "pref": "島根県", "city": "出雲市", "category": "nature", "note": "神迎えの浜"}, {"id": "p329", "name": "出雲大社", "pref": "島根県", "city": "出雲市", "category": "history", "note": "縁結びの古社"}, {"id": "p330", "name": "松江城", "pref": "島根県", "city": "松江市", "category": "history", "note": "国宝の現存天守"}, {"id": "p331", "name": "石見銀山遺跡", "pref": "島根県", "city": "大田市", "category": "history", "note": "世界遺産の鉱山跡"}, {"id": "p332", "name": "松江フォーゲルパーク", "pref": "島根県", "city": "松江市", "category": "theme", "note": "花と鳥のテーマ園"}, {"id": "p333", "name": "島根県立古代出雲歴史博物館", "pref": "島根県", "city": "出雲市", "category": "museum", "note": "出雲大社隣接の博物館"}, {"id": "p334", "name": "足立美術館", "pref": "島根県", "city": "安来市", "category": "museum", "note": "日本庭園と横山大観"}, {"id": "p335", "name": "松江堀川めぐり", "pref": "島根県", "city": "松江市", "category": "town", "note": "城下町の遊覧船"}, {"id": "p336", "name": "玉造温泉", "pref": "島根県", "city": "松江市", "category": "town", "note": "美肌の湯温泉街"}, {"id": "p337", "name": "岡山後楽園", "pref": "岡山県", "city": "岡山市", "category": "nature", "note": "日本三名園の一つ"}, {"id": "p338", "name": "蒜山高原", "pref": "岡山県", "city": "真庭市", "category": "nature", "note": "牧歌的な高原リゾート"}, {"id": "p339", "name": "鷲羽山", "pref": "岡山県", "city": "倉敷市", "category": "nature", "note": "瀬戸内海の絶景"}, {"id": "p340", "name": "備中国分寺", "pref": "岡山県", "city": "総社市", "category": "history", "note": "五重塔と菜の花畑"}, {"id": "p341", "name": "吉備津神社", "pref": "岡山県", "city": "岡山市", "category": "history", "note": "桃太郎伝説ゆかりの社"}, {"id": "p342", "name": "岡山城", "pref": "岡山県", "city": "岡山市", "category": "history", "note": "烏城と呼ばれる城"}, {"id": "p343", "name": "鷲羽山ハイランド", "pref": "岡山県", "city": "倉敷市", "category": "theme", "note": "瀬戸内を望む遊園地"}, {"id": "p344", "name": "大原美術館", "pref": "岡山県", "city": "倉敷市", "category": "museum", "note": "日本初の西洋美術館"}, {"id": "p345", "name": "倉敷美観地区", "pref": "岡山県", "city": "倉敷市", "category": "town", "note": "白壁と柳並木の町並み"}, {"id": "p346", "name": "児島ジーンズストリート", "pref": "岡山県", "city": "倉敷市", "category": "town", "note": "国産デニム発祥の地"}, {"id": "p347", "name": "しまなみ海道", "pref": "広島県", "city": "尾道市", "category": "nature", "note": "島々を結ぶサイクル橋"}, {"id": "p348", "name": "帝釈峡", "pref": "広島県", "city": "庄原市", "category": "nature", "note": "雄大な渓谷美"}, {"id": "p349", "name": "縮景園", "pref": "広島県", "city": "広島市", "category": "nature", "note": "大名庭園の名園"}, {"id": "p350", "name": "原爆ドーム", "pref": "広島県", "city": "広島市", "category": "history", "note": "世界遺産の被爆遺構"}, {"id": "p351", "name": "厳島神社", "pref": "広島県", "city": "廿日市市", "category": "history", "note": "世界遺産の海上鳥居"}, {"id": "p352", "name": "広島城", "pref": "広島県", "city": "広島市", "category": "history", "note": "鯉城と呼ばれる城"}, {"id": "p353", "name": "みろくの里", "pref": "広島県", "city": "福山市", "category": "theme", "note": "遊園地とレトロ広場"}, {"id": "p354", "name": "広島平和記念資料館", "pref": "広島県", "city": "広島市", "category": "museum", "note": "平和と歴史を伝える館"}, {"id": "p355", "name": "尾道(千光寺・坂の町)", "pref": "広島県", "city": "尾道市", "category": "town", "note": "坂と猫の港町"}, {"id": "p356", "name": "鞆の浦", "pref": "広島県", "city": "福山市", "category": "town", "note": "江戸情緒の港町"}, {"id": "p357", "name": "秋吉台", "pref": "山口県", "city": "美祢市", "category": "nature", "note": "日本最大のカルスト台地"}, {"id": "p358", "name": "秋芳洞", "pref": "山口県", "city": "美祢市", "category": "nature", "note": "国内最大級の鍾乳洞"}, {"id": "p359", "name": "角島大橋", "pref": "山口県", "city": "下関市", "category": "nature", "note": "海上を渡る絶景の橋"}, {"id": "p360", "name": "元乃隅神社", "pref": "山口県", "city": "長門市", "category": "history", "note": "海沿いに並ぶ鳥居群"}, {"id": "p361", "name": "松下村塾", "pref": "山口県", "city": "萩市", "category": "history", "note": "世界遺産の私塾跡"}, {"id": "p362", "name": "瑠璃光寺五重塔", "pref": "山口県", "city": "山口市", "category": "history", "note": "国宝の美しい五重塔"}, {"id": "p363", "name": "錦帯橋", "pref": "山口県", "city": "岩国市", "category": "history", "note": "木造五連の名橋"}, {"id": "p364", "name": "海響館", "pref": "山口県", "city": "下関市", "category": "theme", "note": "ふぐ展示の水族館"}, {"id": "p365", "name": "唐戸市場", "pref": "山口県", "city": "下関市", "category": "town", "note": "ふぐで有名な市場"}, {"id": "p366", "name": "萩城下町", "pref": "山口県", "city": "萩市", "category": "town", "note": "武家屋敷が残る町並み"}, {"id": "p367", "name": "剣山", "pref": "徳島県", "city": "三好市", "category": "nature", "note": "西日本第二の高峰"}, {"id": "p368", "name": "大歩危・小歩危", "pref": "徳島県", "city": "三好市", "category": "nature", "note": "吉野川の渓谷美"}, {"id": "p369", "name": "眉山", "pref": "徳島県", "city": "徳島市", "category": "nature", "note": "市街を望む山"}, {"id": "p370", "name": "鳴門の渦潮", "pref": "徳島県", "city": "鳴門市", "category": "nature", "note": "世界最大級の渦潮"}, {"id": "p371", "name": "祖谷のかずら橋", "pref": "徳島県", "city": "三好市", "category": "history", "note": "つる草の吊り橋"}, {"id": "p372", "name": "薬王寺", "pref": "徳島県", "city": "美波町", "category": "history", "note": "厄除けで知られる霊場"}, {"id": "p373", "name": "阿波おどり会館", "pref": "徳島県", "city": "徳島市", "category": "theme", "note": "阿波おどり体験施設"}, {"id": "p374", "name": "大塚国際美術館", "pref": "徳島県", "city": "鳴門市", "category": "museum", "note": "陶板名画の美術館"}, {"id": "p375", "name": "脇町うだつの町並み", "pref": "徳島県", "city": "美馬市", "category": "town", "note": "白漆喰の商家町並み"}, {"id": "p376", "name": "寒霞渓", "pref": "香川県", "city": "小豆島町", "category": "nature", "note": "日本三大渓谷美"}, {"id": "p377", "name": "小豆島オリーブ公園", "pref": "香川県", "city": "小豆島町", "category": "nature", "note": "オリーブ畑と絶景"}, {"id": "p378", "name": "屋島", "pref": "香川県", "city": "高松市", "category": "nature", "note": "源平合戦の古戦場"}, {"id": "p379", "name": "栗林公園", "pref": "香川県", "city": "高松市", "category": "nature", "note": "特別名勝の大名庭園"}, {"id": "p380", "name": "瀬戸大橋", "pref": "香川県", "city": "坂出市", "category": "nature", "note": "瀬戸内海を渡る大橋"}, {"id": "p381", "name": "丸亀城", "pref": "香川県", "city": "丸亀市", "category": "history", "note": "現存天守と高石垣"}, {"id": "p382", "name": "金刀比羅宮", "pref": "香川県", "city": "琴平町", "category": "history", "note": "こんぴらさんの石段"}, {"id": "p383", "name": "NEWレオマワールド", "pref": "香川県", "city": "丸亀市", "category": "theme", "note": "四国最大級の遊園地"}, {"id": "p384", "name": "直島(地中美術館)", "pref": "香川県", "city": "直島町", "category": "museum", "note": "現代アートの島"}, {"id": "p385", "name": "高松中央商店街", "pref": "香川県", "city": "高松市", "category": "town", "note": "日本一長い商店街"}, {"id": "p386", "name": "佐田岬", "pref": "愛媛県", "city": "伊方町", "category": "nature", "note": "日本一細長い岬"}, {"id": "p387", "name": "来島海峡大橋(しまなみ海道)", "pref": "愛媛県", "city": "今治市", "category": "nature", "note": "サイクリングの名橋"}, {"id": "p388", "name": "石鎚山", "pref": "愛媛県", "city": "西条市", "category": "nature", "note": "西日本最高峰の霊山"}, {"id": "p389", "name": "大山祇神社", "pref": "愛媛県", "city": "今治市", "category": "history", "note": "大三島の古社"}, {"id": "p390", "name": "宇和島城", "pref": "愛媛県", "city": "宇和島市", "category": "history", "note": "現存天守が残る城"}, {"id": "p391", "name": "松山城", "pref": "愛媛県", "city": "松山市", "category": "history", "note": "現存12天守の一つ"}, {"id": "p392", "name": "とべ動物園", "pref": "愛媛県", "city": "砥部町", "category": "theme", "note": "四国最大級の動物園"}, {"id": "p393", "name": "愛媛県立美術館", "pref": "愛媛県", "city": "松山市", "category": "museum", "note": "郷土ゆかりの美術館"}, {"id": "p394", "name": "内子座・内子町並み", "pref": "愛媛県", "city": "内子町", "category": "town", "note": "白壁の芝居小屋と町並み"}, {"id": "p395", "name": "道後温泉本館", "pref": "愛媛県", "city": "松山市", "category": "town", "note": "日本最古級の温泉街"}, {"id": "p396", "name": "四万十川", "pref": "高知県", "city": "四万十市", "category": "nature", "note": "最後の清流"}, {"id": "p397", "name": "室戸岬", "pref": "高知県", "city": "室戸市", "category": "nature", "note": "ジオパークの岬"}, {"id": "p398", "name": "桂浜", "pref": "高知県", "city": "高知市", "category": "nature", "note": "坂本龍馬像と月の名所"}, {"id": "p399", "name": "足摺岬", "pref": "高知県", "city": "土佐清水市", "category": "nature", "note": "太平洋を望む岬"}, {"id": "p400", "name": "高知県立牧野植物園", "pref": "高知県", "city": "高知市", "category": "nature", "note": "植物学者ゆかりの庭園"}, {"id": "p401", "name": "高知城", "pref": "高知県", "city": "高知市", "category": "history", "note": "現存12天守の一つ"}, {"id": "p402", "name": "アンパンマンミュージアム", "pref": "高知県", "city": "香美市", "category": "theme", "note": "やなせたかし記念館"}, {"id": "p403", "name": "高知城歴史博物館", "pref": "高知県", "city": "高知市", "category": "museum", "note": "土佐藩の歴史を展示"}, {"id": "p404", "name": "ひろめ市場", "pref": "高知県", "city": "高知市", "category": "town", "note": "高知グルメの屋台街"}, {"id": "p405", "name": "日曜市", "pref": "高知県", "city": "高知市", "category": "town", "note": "300年続く街路市"}, {"id": "p406", "name": "平尾台", "pref": "福岡県", "city": "北九州市", "category": "nature", "note": "カルスト台地の絶景"}, {"id": "p407", "name": "柳川川下り", "pref": "福岡県", "city": "柳川市", "category": "nature", "note": "掘割を巡るどんこ舟"}, {"id": "p408", "name": "河内藤園", "pref": "福岡県", "city": "北九州市", "category": "nature", "note": "藤の名所の庭園"}, {"id": "p409", "name": "糸島(桜井二見ヶ浦)", "pref": "福岡県", "city": "糸島市", "category": "nature", "note": "夫婦岩のある海岸"}, {"id": "p410", "name": "太宰府天満宮", "pref": "福岡県", "city": "太宰府市", "category": "history", "note": "学問の神様の古社"}, {"id": "p411", "name": "宗像大社", "pref": "福岡県", "city": "宗像市", "category": "history", "note": "世界遺産の海の正倉院"}, {"id": "p412", "name": "福岡城跡・舞鶴公園", "pref": "福岡県", "city": "福岡市", "category": "history", "note": "桜も名高い城跡公園"}, {"id": "p413", "name": "マリンワールド海の中道", "pref": "福岡県", "city": "福岡市", "category": "theme", "note": "人気の水族館"}, {"id": "p414", "name": "九州国立博物館", "pref": "福岡県", "city": "太宰府市", "category": "museum", "note": "国内4番目の国立館"}, {"id": "p415", "name": "キャナルシティ博多", "pref": "福岡県", "city": "福岡市", "category": "town", "note": "商業複合施設"}, {"id": "p416", "name": "中洲屋台街", "pref": "福岡県", "city": "福岡市", "category": "town", "note": "屋台グルメの街"}, {"id": "p417", "name": "門司港レトロ", "pref": "福岡県", "city": "北九州市", "category": "town", "note": "レトロな港町並み"}, {"id": "p418", "name": "大魚神社海中鳥居", "pref": "佐賀県", "city": "太良町", "category": "nature", "note": "有明海に立つ鳥居"}, {"id": "p419", "name": "御船山楽園", "pref": "佐賀県", "city": "武雄市", "category": "nature", "note": "四季の花咲く庭園"}, {"id": "p420", "name": "虹の松原", "pref": "佐賀県", "city": "唐津市", "category": "nature", "note": "日本三大松原の一つ"}, {"id": "p421", "name": "吉野ヶ里歴史公園", "pref": "佐賀県", "city": "吉野ヶ里町", "category": "history", "note": "弥生時代の史跡公園"}, {"id": "p422", "name": "唐津城", "pref": "佐賀県", "city": "唐津市", "category": "history", "note": "舞鶴城とも呼ばれる"}, {"id": "p423", "name": "祐徳稲荷神社", "pref": "佐賀県", "city": "鹿島市", "category": "history", "note": "日本三大稲荷の一つ"}, {"id": "p424", "name": "九州陶磁文化館", "pref": "佐賀県", "city": "有田町", "category": "museum", "note": "陶磁器専門の博物館"}, {"id": "p425", "name": "呼子朝市", "pref": "佐賀県", "city": "唐津市", "category": "town", "note": "日本三大朝市の一つ"}, {"id": "p426", "name": "有田内山地区", "pref": "佐賀県", "city": "有田町", "category": "town", "note": "焼き物の伝統町並み"}, {"id": "p427", "name": "武雄温泉楼門", "pref": "佐賀県", "city": "武雄市", "category": "town", "note": "赤い楼門の温泉街"}, {"id": "p428", "name": "九十九島", "pref": "長崎県", "city": "佐世保市", "category": "nature", "note": "島々が浮かぶ絶景"}, {"id": "p429", "name": "稲佐山", "pref": "長崎県", "city": "長崎市", "category": "nature", "note": "世界新三大夜景"}, {"id": "p430", "name": "雲仙地獄", "pref": "長崎県", "city": "雲仙市", "category": "nature", "note": "噴煙上がる温泉地"}, {"id": "p431", "name": "グラバー園", "pref": "長崎県", "city": "長崎市", "category": "history", "note": "洋館が並ぶ庭園"}, {"id": "p432", "name": "出島", "pref": "長崎県", "city": "長崎市", "category": "history", "note": "鎖国時代の人工島"}, {"id": "p433", "name": "大浦天主堂", "pref": "長崎県", "city": "長崎市", "category": "history", "note": "国宝の教会堂"}, {"id": "p434", "name": "軍艦島(端島)", "pref": "長崎県", "city": "長崎市", "category": "history", "note": "廃墟の世界遺産島"}, {"id": "p435", "name": "ハウステンボス", "pref": "長崎県", "city": "佐世保市", "category": "theme", "note": "オランダ風テーマパーク"}, {"id": "p436", "name": "長崎原爆資料館・平和公園", "pref": "長崎県", "city": "長崎市", "category": "museum", "note": "平和を伝える資料館"}, {"id": "p437", "name": "眼鏡橋", "pref": "長崎県", "city": "長崎市", "category": "town", "note": "日本最古のアーチ橋"}, {"id": "p438", "name": "長崎新地中華街", "pref": "長崎県", "city": "長崎市", "category": "town", "note": "日本三大中華街"}, {"id": "p439", "name": "水前寺成趣園", "pref": "熊本県", "city": "熊本市", "category": "nature", "note": "東海道を模した庭園"}, {"id": "p440", "name": "菊池渓谷", "pref": "熊本県", "city": "菊池市", "category": "nature", "note": "清流と緑の渓谷"}, {"id": "p441", "name": "阿蘇山(草千里ヶ浜)", "pref": "熊本県", "city": "阿蘇市", "category": "nature", "note": "世界最大級の火口"}, {"id": "p442", "name": "天草(崎津集落)", "pref": "熊本県", "city": "天草市", "category": "history", "note": "世界遺産の教会集落"}, {"id": "p443", "name": "熊本城", "pref": "熊本県", "city": "熊本市", "category": "history", "note": "名城とされる巨城"}, {"id": "p444", "name": "通潤橋", "pref": "熊本県", "city": "山都町", "category": "history", "note": "江戸期の石造水路橋"}, {"id": "p445", "name": "熊本市動植物園", "pref": "熊本県", "city": "熊本市", "category": "theme", "note": "動物と植物の楽園"}, {"id": "p446", "name": "熊本県立美術館", "pref": "熊本県", "city": "熊本市", "category": "museum", "note": "県内屈指の美術館"}, {"id": "p447", "name": "上通・下通アーケード", "pref": "熊本県", "city": "熊本市", "category": "town", "note": "熊本随一の繁華街"}, {"id": "p448", "name": "黒川温泉", "pref": "熊本県", "city": "南小国町", "category": "town", "note": "風情ある温泉郷"}, {"id": "p449", "name": "くじゅう花公園", "pref": "大分県", "city": "九重町", "category": "nature", "note": "高原に咲く花の楽園"}, {"id": "p450", "name": "耶馬渓", "pref": "大分県", "city": "中津市", "category": "nature", "note": "奇岩連なる渓谷美"}, {"id": "p451", "name": "宇佐神宮", "pref": "大分県", "city": "宇佐市", "category": "history", "note": "全国八幡宮の総本宮"}, {"id": "p452", "name": "臼杵石仏", "pref": "大分県", "city": "臼杵市", "category": "history", "note": "国宝の磨崖仏群"}, {"id": "p453", "name": "うみたまご", "pref": "大分県", "city": "大分市", "category": "theme", "note": "大分マリーンパレス水族館"}, {"id": "p454", "name": "別府温泉(地獄めぐり)", "pref": "大分県", "city": "別府市", "category": "theme", "note": "湧出量日本一の温泉"}, {"id": "p455", "name": "高崎山自然動物園", "pref": "大分県", "city": "大分市", "category": "theme", "note": "野生ニホンザルの山"}, {"id": "p456", "name": "大分県立美術館", "pref": "大分県", "city": "大分市", "category": "museum", "note": "現代的な県立美術館"}, {"id": "p457", "name": "城下町杵築", "pref": "大分県", "city": "杵築市", "category": "town", "note": "坂の城下町並み"}, {"id": "p458", "name": "由布院温泉・金鱗湖", "pref": "大分県", "city": "由布市", "category": "town", "note": "人気の温泉リゾート"}, {"id": "p459", "name": "生駒高原", "pref": "宮崎県", "city": "小林市", "category": "nature", "note": "コスモス咲く高原"}, {"id": "p460", "name": "都井岬", "pref": "宮崎県", "city": "串間市", "category": "nature", "note": "野生馬が暮らす岬"}, {"id": "p461", "name": "高千穂峡", "pref": "宮崎県", "city": "高千穂町", "category": "nature", "note": "柱状節理の渓谷美"}, {"id": "p462", "name": "青島神社", "pref": "宮崎県", "city": "宮崎市", "category": "history", "note": "鬼の洗濯板に囲まれる"}, {"id": "p463", "name": "高千穂神社", "pref": "宮崎県", "city": "高千穂町", "category": "history", "note": "神話の里の古社"}, {"id": "p464", "name": "鵜戸神宮", "pref": "宮崎県", "city": "日南市", "category": "history", "note": "洞窟内の朱塗り社殿"}, {"id": "p465", "name": "サンメッセ日南", "pref": "宮崎県", "city": "日南市", "category": "theme", "note": "モアイ像が並ぶ公園"}, {"id": "p466", "name": "シーガイア", "pref": "宮崎県", "city": "宮崎市", "category": "theme", "note": "南国リゾート施設"}, {"id": "p467", "name": "宮崎市フェニックス自然動物園", "pref": "宮崎県", "city": "宮崎市", "category": "theme", "note": "南国ムード漂う動物園"}, {"id": "p468", "name": "橘通り", "pref": "宮崎県", "city": "宮崎市", "category": "town", "note": "宮崎随一の繁華街"}, {"id": "p469", "name": "屋久島(縄文杉)", "pref": "鹿児島県", "city": "屋久島町", "category": "nature", "note": "世界遺産の原生林"}, {"id": "p470", "name": "桜島", "pref": "鹿児島県", "city": "鹿児島市", "category": "nature", "note": "今も噴煙上げる活火山"}, {"id": "p471", "name": "池田湖", "pref": "鹿児島県", "city": "指宿市", "category": "nature", "note": "九州最大のカルデラ湖"}, {"id": "p472", "name": "仙巌園", "pref": "鹿児島県", "city": "鹿児島市", "category": "history", "note": "島津家の別邸庭園"}, {"id": "p473", "name": "霧島神宮", "pref": "鹿児島県", "city": "霧島市", "category": "history", "note": "朱塗り豪華な古社"}, {"id": "p474", "name": "平川動物公園", "pref": "鹿児島県", "city": "鹿児島市", "category": "theme", "note": "桜島望む動物園"}, {"id": "p475", "name": "指宿温泉(砂むし会館)", "pref": "鹿児島県", "city": "指宿市", "category": "theme", "note": "砂むし温泉が名物"}, {"id": "p476", "name": "知覧特攻平和会館", "pref": "鹿児島県", "city": "南九州市", "category": "museum", "note": "特攻隊の歴史を伝える"}, {"id": "p477", "name": "維新ふるさと館", "pref": "鹿児島県", "city": "鹿児島市", "category": "museum", "note": "明治維新の歴史館"}, {"id": "p478", "name": "天文館商店街", "pref": "鹿児島県", "city": "鹿児島市", "category": "town", "note": "南九州随一の繁華街"}, {"id": "p479", "name": "万座毛", "pref": "沖縄県", "city": "恩納村", "category": "nature", "note": "象の鼻に似た断崖"}, {"id": "p480", "name": "古宇利島", "pref": "沖縄県", "city": "今帰仁村", "category": "nature", "note": "古宇利大橋が架かる島"}, {"id": "p481", "name": "川平湾", "pref": "沖縄県", "city": "石垣市", "category": "nature", "note": "ミシュラン三つ星の海"}, {"id": "p482", "name": "残波岬", "pref": "沖縄県", "city": "読谷村", "category": "nature", "note": "断崖続く景勝地"}, {"id": "p483", "name": "沖縄平和祈念公園", "pref": "沖縄県", "city": "糸満市", "category": "history", "note": "沖縄戦の慰霊施設"}, {"id": "p484", "name": "首里城", "pref": "沖縄県", "city": "那覇市", "category": "history", "note": "琉球王国の王城跡"}, {"id": "p485", "name": "おきなわワールド", "pref": "沖縄県", "city": "南城市", "category": "theme", "note": "鍾乳洞と文化体験施設"}, {"id": "p486", "name": "ブセナ海中公園", "pref": "沖縄県", "city": "名護市", "category": "theme", "note": "海中展望塔と遊覧船"}, {"id": "p487", "name": "沖縄美ら海水族館", "pref": "沖縄県", "city": "本部町", "category": "theme", "note": "ジンベエザメで有名"}, {"id": "p488", "name": "国際通り", "pref": "沖縄県", "city": "那覇市", "category": "town", "note": "沖縄随一の繁華街"}, {"id": "p489", "name": "竹富島", "pref": "沖縄県", "city": "竹富町", "category": "town", "note": "赤瓦の伝統的集落"}, {"id": "p490", "name": "第一牧志公設市場", "pref": "沖縄県", "city": "那覇市", "category": "town", "note": "那覇の台所と呼ばれる"}];
+const PREF_ORDER = ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"];
+const PREF_REGION = {"北海道": "hokkaido_tohoku", "青森県": "hokkaido_tohoku", "岩手県": "hokkaido_tohoku", "宮城県": "hokkaido_tohoku", "秋田県": "hokkaido_tohoku", "山形県": "hokkaido_tohoku", "福島県": "hokkaido_tohoku", "茨城県": "kanto", "栃木県": "kanto", "群馬県": "kanto", "埼玉県": "kanto", "千葉県": "kanto", "東京都": "kanto", "神奈川県": "kanto", "新潟県": "chubu", "富山県": "chubu", "石川県": "chubu", "福井県": "chubu", "山梨県": "chubu", "長野県": "chubu", "岐阜県": "chubu", "静岡県": "chubu", "愛知県": "chubu", "三重県": "kinki", "滋賀県": "kinki", "京都府": "kinki", "大阪府": "kinki", "兵庫県": "kinki", "奈良県": "kinki", "和歌山県": "kinki", "鳥取県": "chugoku_shikoku", "島根県": "chugoku_shikoku", "岡山県": "chugoku_shikoku", "広島県": "chugoku_shikoku", "山口県": "chugoku_shikoku", "徳島県": "chugoku_shikoku", "香川県": "chugoku_shikoku", "愛媛県": "chugoku_shikoku", "高知県": "chugoku_shikoku", "福岡県": "kyushu_okinawa", "佐賀県": "kyushu_okinawa", "長崎県": "kyushu_okinawa", "熊本県": "kyushu_okinawa", "大分県": "kyushu_okinawa", "宮崎県": "kyushu_okinawa", "鹿児島県": "kyushu_okinawa", "沖縄県": "kyushu_okinawa"};
+
+const CATEGORY_ORDER = ["nature","history","theme","museum","town"];
+const CATEGORY_LABEL = {nature:"自然・絶景", history:"社寺・城・史跡", theme:"テーマパーク・レジャー", museum:"博物館・美術館", town:"まちなみ・グルメ"};
+const CATEGORY_COLOR = {nature:"#2f9e6e", history:"#7c5cf0", theme:"#2f7fd6", museum:"#d1477a", town:"#c9862a"};
+const REGION_ORDER = ["hokkaido_tohoku","kanto","chubu","kinki","chugoku_shikoku","kyushu_okinawa"];
+const REGION_LABEL = {hokkaido_tohoku:"北海道・東北", kanto:"関東", chubu:"中部", kinki:"近畿", chugoku_shikoku:"中国・四国", kyushu_okinawa:"九州・沖縄"};
+
+const STORE_KEY = "kanko_checkin_v1";
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return {v:1, custom:[], records:{}, hidden:[], edits:{}};
+    const s = JSON.parse(raw);
+    return Object.assign({v:1, custom:[], records:{}, hidden:[], edits:{}}, s);
+  }catch(e){ return {v:1, custom:[], records:{}, hidden:[], edits:{}}; }
+}
+function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }catch(e){} }
+let store = loadStore();
+
+function mergedPresets(){
+  return PRESETS.filter(p => store.hidden.indexOf(p.id) === -1).map(p=>{
+    const e = store.edits[p.id];
+    return e ? Object.assign({}, p, e, {isCustom:false}) : Object.assign({}, p, {isCustom:false});
+  });
+}
+function allSpots(){
+  const customs = store.custom.map(c => Object.assign({}, c, {isCustom:true}));
+  return mergedPresets().concat(customs);
+}
+function spotById(id){ return allSpots().find(s => s.id === id); }
+function recOf(id){ return store.records[id] || {visits:[], rating:0, want:false}; }
+
+function fmtDate(d){
+  const dt = new Date(d+"T00:00:00");
+  return `${dt.getMonth()+1}/${dt.getDate()}`;
+}
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+let currentTab = "coverage";
+let listFilter = {status:"all", region:"all", category:"all", q:""};
+let currentDetailId = null;
+const _now = new Date();
+let calYear = _now.getFullYear();
+let calMonth = _now.getMonth(); // 0-indexed
+
+// ---------- rendering ----------
+function render(){
+  renderSubbar();
+  if(currentTab === "coverage") renderCoverage();
+  else if(currentTab === "list") renderList();
+  else if(currentTab === "calendar") renderCalendar();
+  else renderStats();
+}
+
+function overallStats(){
+  const spots = allSpots();
+  const total = spots.length;
+  let visited = 0;
+  spots.forEach(s=>{ const r = store.records[s.id]; if(r && r.visits && r.visits.length>0) visited++; });
+  return {total, visited, pct: total? Math.round(visited/total*100):0};
+}
+
+function renderSubbar(){
+  const bar = document.getElementById("subbar");
+  if(currentTab !== "list"){ bar.innerHTML = ""; return; }
+  bar.innerHTML = `
+    <button class="chipbtn ${listFilter.status==='all'?'active':''}" data-f="status" data-v="all">すべて</button>
+    <button class="chipbtn ${listFilter.status==='visited'?'active':''}" data-f="status" data-v="visited">行った</button>
+    <button class="chipbtn ${listFilter.status==='want'?'active':''}" data-f="status" data-v="want">行きたい</button>
+    <button class="chipbtn ${listFilter.status==='none'?'active':''}" data-f="status" data-v="none">未訪問</button>
+  `;
+  bar.querySelectorAll("button").forEach(b=>{
+    b.onclick = ()=>{ listFilter[b.dataset.f] = b.dataset.v; render(); };
+  });
+}
+
+function prefRate(pref){
+  const spots = allSpots().filter(s=>s.pref===pref);
+  let v=0;
+  spots.forEach(s=>{ const r=store.records[s.id]; if(r && r.visits && r.visits.length>0) v++; });
+  return {total:spots.length, visited:v, pct: spots.length? Math.round(v/spots.length*100):0};
+}
+
+function chipHtml(s){
+  const r = recOf(s.id);
+  const visited = r.visits && r.visits.length>0;
+  let cls = "chip";
+  let mark = "";
+  if(visited){ cls += " visited"; mark = `<span>✔</span>`; if(r.visits.length>1) mark += `<span class="cnt">×${r.visits.length}</span>`; }
+  else if(r.want){ cls += " want"; mark = `<span>★</span>`; }
+  const dotColor = CATEGORY_COLOR[s.category] || "#999";
+  return `<span class="${cls}" data-id="${s.id}"><span class="cdot" style="background:${dotColor}"></span>${mark}${escapeHtml(s.name)}</span>`;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function renderCoverage(){
+  const main = document.getElementById("main");
+  const os = overallStats();
+  let html = `
+    <div class="heroCard">
+      <div class="heroTop"><div><div class="lbl">全国制覇率</div><div class="big">${os.pct}%</div></div>
+      <div class="lbl">${os.visited} / ${os.total} スポット</div></div>
+      <div class="barTrack"><div class="barFill" style="width:${os.pct}%"></div></div>
+      <div class="heroSub">チェックインしたスポットの割合です。都道府県ごとの内訳は下のカードで確認できます。</div>
+    </div>
+    <div class="legend">
+      ${CATEGORY_ORDER.map(c=>`<span><i style="background:${CATEGORY_COLOR[c]}"></i>${CATEGORY_LABEL[c]}</span>`).join("")}
+    </div>
+  `;
+  REGION_ORDER.forEach(region=>{
+    html += `<div class="regionHead">${REGION_LABEL[region]}</div>`;
+    PREF_ORDER.filter(p => PREF_REGION[p]===region).forEach(pref=>{
+      const spots = allSpots().filter(s=>s.pref===pref);
+      if(spots.length===0) return;
+      const rate = prefRate(pref);
+      html += `<div class="prefCard"><div class="ph"><div class="pname">${pref}</div><div class="prate">${rate.visited}/${rate.total}（${rate.pct}%）</div></div>
+      <div class="barTrack"><div class="barFill" style="width:${rate.pct}%"></div></div>`;
+      CATEGORY_ORDER.forEach(cat=>{
+        const inCat = spots.filter(s=>s.category===cat);
+        if(inCat.length===0) return;
+        html += `<div class="catGroup"><div class="catHead"><span class="catDot" style="background:${CATEGORY_COLOR[cat]}"></span>${CATEGORY_LABEL[cat]}（${inCat.length}）</div>
+        <div class="chips">${inCat.map(chipHtml).join("")}</div></div>`;
+      });
+      html += `</div>`;
+    });
+  });
+  main.innerHTML = html;
+  bindChipTaps();
+}
+
+function renderList(){
+  const main = document.getElementById("main");
+  let spots = allSpots();
+  if(listFilter.status !== "all"){
+    spots = spots.filter(s=>{
+      const r = recOf(s.id);
+      const visited = r.visits && r.visits.length>0;
+      if(listFilter.status==="visited") return visited;
+      if(listFilter.status==="want") return !visited && r.want;
+      if(listFilter.status==="none") return !visited && !r.want;
+      return true;
+    });
+  }
+  if(listFilter.region !== "all") spots = spots.filter(s=>PREF_REGION[s.pref]===listFilter.region);
+  if(listFilter.category !== "all") spots = spots.filter(s=>s.category===listFilter.category);
+  if(listFilter.q) spots = spots.filter(s=>s.name.includes(listFilter.q) || (s.city||"").includes(listFilter.q));
+
+  let html = `
+    <div class="searchBox">🔍<input id="searchInput" type="text" placeholder="スポット名・エリアで検索" value="${escapeHtml(listFilter.q)}"></div>
+    <div class="filterRow">
+      <select class="selCtl" id="regionSel"><option value="all">地方：すべて</option>${REGION_ORDER.map(r=>`<option value="${r}" ${listFilter.region===r?'selected':''}>${REGION_LABEL[r]}</option>`).join("")}</select>
+      <select class="selCtl" id="catSel"><option value="all">種類：すべて</option>${CATEGORY_ORDER.map(c=>`<option value="${c}" ${listFilter.category===c?'selected':''}>${CATEGORY_LABEL[c]}</option>`).join("")}</select>
+    </div>
+  `;
+  if(spots.length===0){
+    html += `<div class="emptyMsg">該当するスポットがありません</div>`;
+  }else{
+    const byPref = {};
+    spots.forEach(s=>{ (byPref[s.pref] = byPref[s.pref]||[]).push(s); });
+    const prefsPresent = PREF_ORDER.filter(p=>byPref[p]);
+    prefsPresent.forEach(pref=>{
+      html += `<div class="regionHead">${pref}（${byPref[pref].length}）</div>`;
+      byPref[pref].forEach(s=>{
+        const r = recOf(s.id);
+        const visited = r.visits && r.visits.length>0;
+        let stateCls="none", stateLabel="未訪問";
+        if(visited){ stateCls="visited"; stateLabel = r.visits.length>1?`✔ ×${r.visits.length}`:"✔ 訪問済み"; }
+        else if(r.want){ stateCls="want"; stateLabel="★ 行きたい"; }
+        html += `<div class="listRow" data-id="${s.id}">
+          <span class="cdot" style="background:${CATEGORY_COLOR[s.category]}"></span>
+          <div class="info"><div class="nm">${escapeHtml(s.name)}</div><div class="sub">${escapeHtml(s.city||"")}</div></div>
+          <span class="state ${stateCls}">${stateLabel}</span>
+        </div>`;
+      });
+    });
+  }
+  main.innerHTML = html;
+  document.getElementById("searchInput").oninput = (e)=>{ listFilter.q = e.target.value; renderList(); };
+  document.getElementById("regionSel").onchange = (e)=>{ listFilter.region = e.target.value; renderList(); };
+  document.getElementById("catSel").onchange = (e)=>{ listFilter.category = e.target.value; renderList(); };
+  main.querySelectorAll(".listRow").forEach(row=>{
+    row.onclick = ()=> openDetail(row.dataset.id);
+  });
+}
+
+function buildVisitIndex(){
+  // date string -> [{id, spot}]
+  const idx = {};
+  allSpots().forEach(s=>{
+    const r = store.records[s.id];
+    if(r && r.visits) r.visits.forEach(d=>{
+      (idx[d] = idx[d] || []).push({id:s.id, spot:s});
+    });
+  });
+  return idx;
+}
+
+function renderCalendar(){
+  const main = document.getElementById("main");
+  const visitIndex = buildVisitIndex();
+  const y = calYear, m = calMonth;
+  const firstDay = new Date(y, m, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const monthKey = `${y}-${String(m+1).padStart(2,"0")}`;
+  const todayStrVal = todayStr();
+
+  let monthVisitCount = 0;
+  const monthSpotSet = new Set();
+  Object.keys(visitIndex).forEach(d=>{
+    if(d.startsWith(monthKey)){
+      monthVisitCount += visitIndex[d].length;
+      visitIndex[d].forEach(v=> monthSpotSet.add(v.id));
+    }
+  });
+
+  let html = `
+    <div class="heroCard">
+      <div class="heroTop"><div><div class="lbl">${y}年${m+1}月の記録</div><div class="big">${monthVisitCount}回</div></div>
+      <div class="lbl">${monthSpotSet.size} スポット訪問</div></div>
+    </div>
+    <div class="calHead">
+      <button class="navBtn" id="calPrev">◀</button>
+      <div class="calTitle">${y}年${m+1}月</div>
+      <button class="navBtn" id="calNext">▶</button>
+    </div>
+    <div class="calWeekLabels">${["日","月","火","水","木","金","土"].map((w,i)=>`<div style="color:${i===0?'#c0504d':i===6?'#4a7fc9':'inherit'}">${w}</div>`).join("")}</div>
+    <div class="calGrid">
+  `;
+  for(let i=0;i<startWeekday;i++) html += `<div class="calCell empty"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const visits = visitIndex[ds] || [];
+    const cls = ["calCell"];
+    if(visits.length>0) cls.push("hasVisit");
+    if(ds===todayStrVal) cls.push("today");
+    html += `<div class="${cls.join(' ')}" data-date="${ds}"><span>${d}</span>${visits.length>0?`<span class="dcount">●${visits.length>1?('×'+visits.length):''}</span>`:''}</div>`;
+  }
+  html += `</div>`;
+
+  // last 12 months visit counts (based on real "today", independent of browsed month)
+  const now = new Date();
+  const months = [];
+  for(let i=0;i<12;i++){
+    const dt = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`;
+    let cnt = 0;
+    Object.keys(visitIndex).forEach(d=>{ if(d.startsWith(key)) cnt += visitIndex[d].length; });
+    months.push({label:`${dt.getFullYear()}/${dt.getMonth()+1}`, cnt});
+  }
+  const maxCnt = Math.max(1, ...months.map(x=>x.cnt));
+  html += `<div class="sectionTitle">月ごとの訪問回数（直近12か月）</div><div class="monthBarWrap">`;
+  months.forEach(mo=>{
+    const pct = Math.round(mo.cnt / maxCnt * 100);
+    html += `<div class="barRow"><div class="rl">${mo.label}</div><div class="rt"><div class="rf" style="width:${pct}%;background:var(--accent)"></div></div><div class="rn">${mo.cnt}回</div></div>`;
+  });
+  html += `</div>`;
+
+  main.innerHTML = html;
+  document.getElementById("calPrev").onclick = ()=>{ calMonth--; if(calMonth<0){calMonth=11; calYear--;} renderCalendar(); };
+  document.getElementById("calNext").onclick = ()=>{ calMonth++; if(calMonth>11){calMonth=0; calYear++;} renderCalendar(); };
+  main.querySelectorAll(".calCell.hasVisit").forEach(cell=>{
+    cell.onclick = ()=> openDaySheet(cell.dataset.date, visitIndex[cell.dataset.date]);
+  });
+}
+
+function openDaySheet(dateStr, items){
+  const sheet = document.getElementById("detailSheet");
+  const dt = new Date(dateStr+"T00:00:00");
+  const label = `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`;
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>${label}</h2>
+    <div class="metaline">この日にチェックインしたスポット（${items.length}件）</div>
+    <div class="chips">${items.map(it=>{
+      const dotColor = CATEGORY_COLOR[it.spot.category] || "#999";
+      return `<span class="chip visited" data-id="${it.id}"><span class="cdot" style="background:${dotColor}"></span>${escapeHtml(it.spot.name)}</span>`;
+    }).join("")}</div>
+  `;
+  showSheet("detailSheet");
+  sheet.querySelectorAll(".chip").forEach(ch=>{
+    ch.onclick = ()=> openDetail(ch.dataset.id);
+  });
+}
+
+function renderStats(){
+  const main = document.getElementById("main");
+  const os = overallStats();
+  const spots = allSpots();
+  const visitedPrefs = new Set();
+  spots.forEach(s=>{ const r = store.records[s.id]; if(r && r.visits && r.visits.length>0) visitedPrefs.add(s.pref); });
+  const wantCount = spots.filter(s=>{ const r=store.records[s.id]; return r && r.want && !(r.visits && r.visits.length>0); }).length;
+  const noneCount = os.total - os.visited - wantCount;
+
+  let html = `
+    <div class="heroCard">
+      <div class="heroTop"><div><div class="lbl">全国制覇率</div><div class="big">${os.pct}%</div></div>
+      <div class="lbl">訪れた都道府県 ${visitedPrefs.size} / 47</div></div>
+      <div class="barTrack"><div class="barFill" style="width:${os.pct}%"></div></div>
+    </div>
+    <div class="statGrid">
+      <div class="statTile"><div class="n">${os.visited}</div><div class="l">✔ 行った</div></div>
+      <div class="statTile"><div class="n">${wantCount}</div><div class="l">★ 行きたい</div></div>
+      <div class="statTile"><div class="n">${noneCount}</div><div class="l">未訪問</div></div>
+    </div>
+    <div class="sectionTitle">地方別の制覇率</div>
+  `;
+  REGION_ORDER.forEach(region=>{
+    const rs = spots.filter(s=>PREF_REGION[s.pref]===region);
+    let v=0; rs.forEach(s=>{ const r=store.records[s.id]; if(r&&r.visits&&r.visits.length>0) v++; });
+    const pct = rs.length? Math.round(v/rs.length*100):0;
+    html += `<div class="barRow"><div class="rl">${REGION_LABEL[region]}</div><div class="rt"><div class="rf" style="width:${pct}%;background:var(--accent)"></div></div><div class="rn">${v}/${rs.length}</div></div>`;
+  });
+  html += `<div class="sectionTitle">種類別の内訳</div>`;
+  CATEGORY_ORDER.forEach(cat=>{
+    const cs = spots.filter(s=>s.category===cat);
+    let v=0; cs.forEach(s=>{ const r=store.records[s.id]; if(r&&r.visits&&r.visits.length>0) v++; });
+    const pct = cs.length? Math.round(v/cs.length*100):0;
+    html += `<div class="barRow"><div class="rl">${CATEGORY_LABEL[cat]}</div><div class="rt"><div class="rf" style="width:${pct}%;background:${CATEGORY_COLOR[cat]}"></div></div><div class="rn">${v}/${cs.length}</div></div>`;
+  });
+
+  const favs = spots.filter(s=>{ const r=store.records[s.id]; return r && r.rating>=4; })
+    .sort((a,b)=> (store.records[b.id].rating - store.records[a.id].rating));
+  html += `<div class="sectionTitle">お気に入り（★4以上）</div>`;
+  if(favs.length===0){ html += `<div class="emptyMsg">まだありません</div>`; }
+  else favs.slice(0,20).forEach(s=>{
+    const r = store.records[s.id];
+    html += `<div class="favRow" data-id="${s.id}"><span class="cdot" style="background:${CATEGORY_COLOR[s.category]}"></span><div class="info" style="flex:1"><div class="nm" style="font-weight:700;font-size:13.5px">${escapeHtml(s.name)}</div><div class="sub" style="font-size:11.5px;color:var(--sub)">${escapeHtml(s.pref)}</div></div><div>${"★".repeat(r.rating)}</div></div>`;
+  });
+
+  const recentAll = [];
+  spots.forEach(s=>{ const r=store.records[s.id]; if(r&&r.visits) r.visits.forEach(d=> recentAll.push({d,s})); });
+  recentAll.sort((a,b)=> b.d.localeCompare(a.d));
+  html += `<div class="sectionTitle">最近の訪問</div>`;
+  if(recentAll.length===0){ html += `<div class="emptyMsg">まだありません</div>`; }
+  else recentAll.slice(0,15).forEach(item=>{
+    html += `<div class="favRow" data-id="${item.s.id}"><span class="cdot" style="background:${CATEGORY_COLOR[item.s.category]}"></span><div class="info" style="flex:1"><div class="nm" style="font-weight:700;font-size:13.5px">${escapeHtml(item.s.name)}</div><div class="sub" style="font-size:11.5px;color:var(--sub)">${escapeHtml(item.s.pref)}</div></div><div style="font-size:12px;color:var(--sub)">${fmtDate(item.d)}</div></div>`;
+  });
+
+  main.innerHTML = html;
+  main.querySelectorAll(".favRow").forEach(row=>{ row.onclick = ()=> openDetail(row.dataset.id); });
+}
+
+function bindChipTaps(){
+  document.querySelectorAll(".chip").forEach(ch=>{
+    ch.onclick = ()=> openDetail(ch.dataset.id);
+  });
+}
+
+// ---------- sheets ----------
+const backdrop = document.getElementById("backdrop");
+const CLOSE_BTN_HTML = `<div class="sheetCloseBtn" onclick="hideSheets()">✕</div>`;
+function showSheet(id){
+  document.querySelectorAll(".sheet").forEach(s=> s.classList.remove("show"));
+  backdrop.classList.add("show");
+  document.getElementById(id).classList.add("show");
+}
+function hideSheets(){
+  document.querySelectorAll(".sheet").forEach(s=> s.classList.remove("show"));
+  backdrop.classList.remove("show");
+}
+backdrop.onclick = hideSheets;
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") hideSheets(); });
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=> t.classList.remove("show"), 1600);
+}
+
+function openDetail(id){
+  currentDetailId = id;
+  const s = spotById(id);
+  if(!s) return;
+  const r = recOf(id);
+  const visited = r.visits && r.visits.length>0;
+  const sheet = document.getElementById("detailSheet");
+  const visitsHtml = (r.visits||[]).slice().sort().reverse().map(d=>`<div class="visitItem"><span>${d}</span><button data-d="${d}" class="delVisit">削除</button></div>`).join("");
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>${escapeHtml(s.name)}</h2>
+    <div class="metaline"><span class="catDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CATEGORY_COLOR[s.category]};margin-right:5px;"></span>${CATEGORY_LABEL[s.category]} ・ ${escapeHtml(s.pref)} ${escapeHtml(s.city||"")}</div>
+    ${s.note? `<div class="metaline">${escapeHtml(s.note)}</div>`:""}
+    <div class="btnRow">
+      <button class="btn primary" id="btnVisitToday">✔ 今日行った！</button>
+      <button class="btn ${r.want?'gold':'ghost'}" id="btnWant">${r.want?"★ 行きたいを解除":"☆ 行きたいに追加"}</button>
+    </div>
+    <label>評価</label>
+    <div class="starRow" id="starRow">${[1,2,3,4,5].map(n=>`<span data-n="${n}" class="${r.rating>=n?'on':''}">★</span>`).join("")}</div>
+    <label>日付を指定して記録</label>
+    <div style="display:flex; gap:8px;">
+      <input type="date" id="visitDateInput" value="${todayStr()}" style="flex:1;">
+      <button class="btn small primary" id="btnAddDate">追加</button>
+    </div>
+    <label>訪問履歴（${(r.visits||[]).length}回）</label>
+    <div class="visitList">${visitsHtml || '<div class="emptyMsg" style="padding:10px">まだ記録がありません</div>'}</div>
+    <div class="btnRow">
+      <button class="btn ghost" id="btnEditSpot">✏️ 編集</button>
+      <button class="btn danger" id="btnDeleteSpot">${s.isCustom? "削除":"非表示にする"}</button>
+    </div>
+  `;
+  showSheet("detailSheet");
+
+  document.getElementById("btnVisitToday").onclick = ()=>{
+    ensureRec(id); const t = todayStr();
+    if(store.records[id].visits.indexOf(t)===-1) store.records[id].visits.push(t);
+    saveStore(); toast("記録しました！"); openDetail(id); render();
+  };
+  document.getElementById("btnWant").onclick = ()=>{
+    ensureRec(id); store.records[id].want = !store.records[id].want; saveStore(); openDetail(id); render();
+  };
+  document.getElementById("btnAddDate").onclick = ()=>{
+    const v = document.getElementById("visitDateInput").value;
+    if(!v) return;
+    ensureRec(id);
+    if(store.records[id].visits.indexOf(v)===-1) store.records[id].visits.push(v);
+    saveStore(); toast("記録しました！"); openDetail(id); render();
+  };
+  sheet.querySelectorAll(".delVisit").forEach(b=>{
+    b.onclick = ()=>{
+      const d = b.dataset.d;
+      store.records[id].visits = store.records[id].visits.filter(x=>x!==d);
+      saveStore(); openDetail(id); render();
+    };
+  });
+  sheet.querySelectorAll("#starRow span").forEach(st=>{
+    st.onclick = ()=>{
+      ensureRec(id);
+      const n = parseInt(st.dataset.n,10);
+      store.records[id].rating = (store.records[id].rating===n) ? 0 : n;
+      saveStore(); openDetail(id); render();
+    };
+  });
+  document.getElementById("btnEditSpot").onclick = ()=> openEditForm(id);
+  document.getElementById("btnDeleteSpot").onclick = ()=>{
+    if(s.isCustom){
+      if(!confirm("このスポットを削除しますか？")) return;
+      store.custom = store.custom.filter(c=>c.id!==id);
+      delete store.records[id];
+    }else{
+      if(!confirm("このスポットを一覧から非表示にしますか？（メニューからいつでも復活できます）")) return;
+      if(store.hidden.indexOf(id)===-1) store.hidden.push(id);
+    }
+    saveStore(); hideSheets(); render();
+  };
+}
+function ensureRec(id){
+  if(!store.records[id]) store.records[id] = {visits:[], rating:0, want:false};
+  if(!store.records[id].visits) store.records[id].visits = [];
+}
+
+function openEditForm(id){
+  const s = spotById(id);
+  const sheet = document.getElementById("detailSheet");
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>編集</h2>
+    <label>スポット名</label><input type="text" id="efName" value="${escapeHtml(s.name)}">
+    <label>都道府県</label>
+    <select id="efPref">${PREF_ORDER.map(p=>`<option value="${p}" ${p===s.pref?'selected':''}>${p}</option>`).join("")}</select>
+    <label>エリア・市区町村</label><input type="text" id="efCity" value="${escapeHtml(s.city||"")}">
+    <label>種類</label>
+    <div class="segRow" id="efCatSeg">${CATEGORY_ORDER.map(c=>`<button type="button" class="seg ${c===s.category?'on':''}" data-c="${c}">${CATEGORY_LABEL[c]}</button>`).join("")}</div>
+    <label>ひとことメモ</label><input type="text" id="efNote" value="${escapeHtml(s.note||"")}" placeholder="例：夜景がきれい">
+    <div class="btnRow">
+      <button class="btn ghost" id="efCancel">キャンセル</button>
+      <button class="btn primary" id="efSave">保存</button>
+    </div>
+  `;
+  showSheet("detailSheet");
+  let selCat = s.category;
+  sheet.querySelectorAll("#efCatSeg .seg").forEach(b=>{
+    b.onclick = ()=>{ selCat = b.dataset.c; sheet.querySelectorAll("#efCatSeg .seg").forEach(x=>x.classList.remove("on")); b.classList.add("on"); };
+  });
+  document.getElementById("efCancel").onclick = ()=> openDetail(id);
+  document.getElementById("efSave").onclick = ()=>{
+    const patch = {
+      name: document.getElementById("efName").value.trim() || s.name,
+      pref: document.getElementById("efPref").value,
+      city: document.getElementById("efCity").value.trim(),
+      category: selCat,
+      note: document.getElementById("efNote").value.trim(),
+    };
+    if(s.isCustom){
+      const idx = store.custom.findIndex(c=>c.id===id);
+      if(idx>=0) store.custom[idx] = Object.assign({}, store.custom[idx], patch);
+    }else{
+      store.edits[id] = Object.assign({}, store.edits[id], patch);
+    }
+    saveStore(); toast("保存しました"); openDetail(id); render();
+  };
+}
+
+function openAddForm(){
+  const sheet = document.getElementById("addSheet");
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>観光スポットを追加</h2>
+    <label>スポット名</label><input type="text" id="afName" placeholder="例：〇〇神社">
+    <label>都道府県</label>
+    <select id="afPref">${PREF_ORDER.map(p=>`<option value="${p}">${p}</option>`).join("")}</select>
+    <label>エリア・市区町村</label><input type="text" id="afCity" placeholder="例：〇〇市">
+    <label>種類</label>
+    <div class="segRow" id="afCatSeg">${CATEGORY_ORDER.map((c,i)=>`<button type="button" class="seg ${i===0?'on':''}" data-c="${c}">${CATEGORY_LABEL[c]}</button>`).join("")}</div>
+    <label>ひとことメモ（任意）</label><input type="text" id="afNote" placeholder="例：友人におすすめされた">
+    <div class="btnRow">
+      <button class="btn ghost" id="afCancel">キャンセル</button>
+      <button class="btn primary" id="afSave">追加する</button>
+    </div>
+  `;
+  showSheet("addSheet");
+  let selCat = CATEGORY_ORDER[0];
+  sheet.querySelectorAll("#afCatSeg .seg").forEach(b=>{
+    b.onclick = ()=>{ selCat = b.dataset.c; sheet.querySelectorAll("#afCatSeg .seg").forEach(x=>x.classList.remove("on")); b.classList.add("on"); };
+  });
+  document.getElementById("afCancel").onclick = hideSheets;
+  document.getElementById("afSave").onclick = ()=>{
+    const name = document.getElementById("afName").value.trim();
+    if(!name){ toast("スポット名を入力してください"); return; }
+    const id = "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    store.custom.push({
+      id, name,
+      pref: document.getElementById("afPref").value,
+      city: document.getElementById("afCity").value.trim(),
+      category: selCat,
+      note: document.getElementById("afNote").value.trim(),
+    });
+    saveStore(); toast("追加しました！"); hideSheets(); render();
+  };
+}
+
+function openMenu(){
+  const sheet = document.getElementById("menuSheet");
+  const hiddenPresets = PRESETS.filter(p => store.hidden.indexOf(p.id) !== -1);
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>メニュー</h2>
+    <div class="menuList">
+      <button id="mExport">⬇️ データをエクスポート（JSON）</button>
+      <button id="mImport">⬆️ データをインポート</button>
+      <button id="mHidden">🙈 非表示スポットを復活（${hiddenPresets.length}件）</button>
+      <button id="mAbout">ℹ️ このツールについて</button>
+      <button id="mReset" style="color:#b23c3c;">🗑️ すべてのデータを削除</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none;">
+  `;
+  showSheet("menuSheet");
+  document.getElementById("mExport").onclick = ()=>{
+    const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "kanko_checkin_export.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  document.getElementById("mImport").onclick = ()=> document.getElementById("importFile").click();
+  document.getElementById("importFile").onchange = (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const data = JSON.parse(reader.result);
+        store = Object.assign({v:1, custom:[], records:{}, hidden:[], edits:{}}, data);
+        saveStore(); toast("インポートしました"); hideSheets(); render();
+      }catch(err){ toast("読み込みに失敗しました"); }
+    };
+    reader.readAsText(file);
+  };
+  document.getElementById("mHidden").onclick = ()=> openHiddenList();
+  document.getElementById("mAbout").onclick = ()=>{
+    alert("VisitLog（β）\n\n全国47都道府県の定番観光スポット490件をプリセット収録。行った場所をチェックインして、都道府県ごとの制覇率を確認できます。\n\n・データは端末のブラウザ（localStorage）にのみ保存されます\n・座標情報は使用していないため地図表示はありません\n・観光スポットの情報はWeb検索をもとに収集したもので、営業状況等が変わっている場合があります\n・自分で好きなスポットを追加することもできます");
+  };
+  document.getElementById("mReset").onclick = ()=>{
+    if(!confirm("本当にすべてのチェックイン記録・追加スポットを削除しますか？この操作は取り消せません。")) return;
+    store = {v:1, custom:[], records:{}, hidden:[], edits:{}};
+    saveStore(); toast("削除しました"); hideSheets(); render();
+  };
+}
+
+function openHiddenList(){
+  const sheet = document.getElementById("menuSheet");
+  const hiddenPresets = PRESETS.filter(p => store.hidden.indexOf(p.id) !== -1);
+  sheet.innerHTML = `
+    ${CLOSE_BTN_HTML}
+    <h2>非表示スポット</h2>
+    <div>${hiddenPresets.length===0 ? '<div class="emptyMsg">非表示のスポットはありません</div>' : hiddenPresets.map(p=>`<div class="hiddenRow"><span>${escapeHtml(p.name)}（${escapeHtml(p.pref)}）</span><button data-id="${p.id}">復活</button></div>`).join("")}</div>
+    <div class="btnRow"><button class="btn ghost" id="backToMenu">戻る</button></div>
+  `;
+  sheet.querySelectorAll(".hiddenRow button").forEach(b=>{
+    b.onclick = ()=>{
+      store.hidden = store.hidden.filter(x=>x!==b.dataset.id);
+      saveStore(); toast("復活しました"); openHiddenList(); render();
+    };
+  });
+  document.getElementById("backToMenu").onclick = openMenu;
+}
+
+// ---------- init ----------
+document.querySelectorAll("nav.tabbar button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    currentTab = b.dataset.tab;
+    render();
+  };
+});
+document.getElementById("fabAdd").onclick = openAddForm;
+document.getElementById("btnMenu").onclick = openMenu;
+
+render();
+</script>
+</body>
+</html>
